@@ -1,0 +1,24 @@
+{
+  "name": "scope_tour_group2",
+  "version": "1.0.0",
+  "description": "Bùi Thành Nghĩa\r Trần Quang Hiếu\r Huỳnh Đức Huy\r Võ Hùng Cường",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/NagikoPokPok/Scope_Tour_Group2.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/NagikoPokPok/Scope_Tour_Group2/issues"
+  },
+  "homepage": "https://github.com/NagikoPokPok/Scope_Tour_Group2#readme",
+  "dependencies": {
+    "cors": "^2.8.5",
+    "express": "^5.1.0"
+  }
+}
