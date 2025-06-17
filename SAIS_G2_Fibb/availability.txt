@@ -2,3 +2,8 @@
 1. Nếu server gặp sự cố khiến toàn bộ nhóm học không thể truy cập mục tiêu đã đặt, bạn sẽ thiết kế cơ chế sao lưu hoặc dự phòng ra sao để tránh mất dữ liệu và duy trì tính khả dụng?
 2. Khi nhiều người dùng cùng cập nhật tiến độ học tập cùng lúc, hệ thống bị chậm. Bạn sẽ làm gì để đảm bảo performance và availability không bị ảnh hưởng?
 3. Trường hợp server backend của ScopeTour bị quá tải vào cuối tuần (lượng người dùng tăng vọt), làm thế nào để hệ thống không bị sập toàn bộ?
+
+//Huỳnh Đức Huy
+1. Khi nhóm có nhiều thành viên cùng truy cập và chat/giao bài cùng lúc, ScopeTour có xử lí được việc xếp hạng theo thứ tự thời gian nộp bài không?
+2. Nếu một thành viên không thể truy cập nhóm học trong ScopeTour, làm thế nào để hệ thống phân biệt đó là lỗi hệ thống hay chỉ là do đường truyền mạng?
+3. Nếu hệ thống lưu trữ file bài tập bị lỗi ScopeTour như , hệ thống có thể tự động chuyển sang một bản sao khác không?
