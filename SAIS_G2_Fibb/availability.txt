@@ -1,4 +1,4 @@
 // Võ Hùng Cường
-1.
-2.
-3.
+1. Nếu server gặp sự cố khiến toàn bộ nhóm học không thể truy cập mục tiêu đã đặt, bạn sẽ thiết kế cơ chế sao lưu hoặc dự phòng ra sao để tránh mất dữ liệu và duy trì tính khả dụng?
+2. Khi nhiều người dùng cùng cập nhật tiến độ học tập cùng lúc, hệ thống bị chậm. Bạn sẽ làm gì để đảm bảo performance và availability không bị ảnh hưởng?
+3. Trường hợp server backend của ScopeTour bị quá tải vào cuối tuần (lượng người dùng tăng vọt), làm thế nào để hệ thống không bị sập toàn bộ?
