@@ -1,0 +1,37 @@
+# solution 1: Fibonacci API with Cache
+; 1. Dùng bộ nhớ đệm (cache) tại server
+;  - Khởi tạo mảng fibonacciCache để lưu sẵn 100.000 số Fibonacci đầu tiên.
+;  - Hàm generateFibonacciCache() được gọi ngay khi server khởi động, sinh toàn bộ dãy và lưu vào RAM.
+;  - Khi người dùng gửi yêu cầu /fibonacci?n=..., nếu n <= 100000 và cache đã sẵn sàng, dữ liệu được lấy trực tiếp từ fibonacciCache.
+;  - Việc dùng cache giúp tăng tốc độ phản hồi đáng kể cho các yêu cầu phổ biến (dưới 100.000 số).
+
+; 2. Đảm bảo tính sẵn sàng cho server
+;  - Việc khởi tạo cache được thực hiện bất đồng bộ bằng setTimeout(() => ...) để không chặn quá trình khởi động server.
+;  - Trong trường hợp người dùng gửi yêu cầu khi cache chưa sinh xong, hoặc yêu cầu vượt quá MAX_CACHE, server sẽ tính toán dãy Fibonacci tại chỗ và trả về kết quả tạm thời.
+;  - Điều này đảm bảo server luôn phản hồi được, dù cache chưa sẵn sàng.
+
+; 3. Giao diện client hiển thị toàn bộ kết quả
+;  - Người dùng nhập n và nhận toàn bộ n số Fibonacci sau một lần gọi API.
+;  - Dữ liệu được định dạng bằng hàm formatBigIntExp() để hiển thị gọn (exponential format).
+;  - Giao diện hiển thị theo dạng phân trang 3 cột (client-side pagination) với 1.000 số mỗi trang.
+
+# solution 2: Fibonacci API with On-Demand Computation and Pagination
+; 1. Tính toán theo từng trang tại server
+;  - Server chỉ tính toán một phần dãy Fibonacci theo offset và limit thay vì toàn bộ dãy.
+;  - Ví dụ: Nếu client yêu cầu trang 5 (hiển thị từ số thứ 4001 đến 5000), server chỉ tính fib[4000] đến fib[4999].
+;  - Điều này giúp tiết kiệm CPU, RAM và tối ưu tốc độ phản hồi.
+
+; 2. Giao diện phân trang linh hoạt tại frontend
+;  - Người dùng nhập tổng số lượng Fibonacci (n) cần xem (giới hạn tối đa 100.000).
+;  - Giao diện phân trang theo từng trang 1.000 số, hiển thị rõ ràng theo 3 cột.
+;  - Khi người dùng chuyển trang hoặc nhập số trang cụ thể, client sẽ gửi request mới với offset và limit để chỉ lấy đúng đoạn dữ liệu cần thiết.
+
+; 3. Hiển thị hiệu quả và định dạng số lớn
+;  - Mỗi số Fibonacci được định dạng bằng hàm formatBigIntExp() để rút gọn dạng hiển thị (exponential).
+;  - Trình duyệt sử dụng DocumentFragment để tăng hiệu năng khi render nhiều phần tử DOM một lúc.
+;  - Điều này đảm bảo UI không bị giật, kể cả khi hiển thị các số có hàng trăm chữ số.
+
+; 4. Kiểm soát đầu vào để đảm bảo hiệu năng và an toàn
+;  - Frontend giới hạn tối đa n = 100000 để tránh quá tải hệ thống.
+;  - Người dùng không thể nhập trang vượt quá tổng số trang, và server sẽ từ chối các yêu cầu offset/limit không hợp lệ.
+

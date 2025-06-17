@@ -17,15 +17,52 @@
     <div id="result"></div>
 
     <script>
+        // async function getFibonacci() {
+        //     const n = document.getElementById('n').value;
+        //     const resultDiv = document.getElementById('result');
+        //     resultDiv.textContent = "Loading...";
+        //     try {
+        //         const response = await fetch(`http://localhost:3000/fibonacci?n=${n}`);
+        //         if (!response.ok) throw new Error("Invalid response");
+        //         const data = await response.json();
+        //         // resultDiv.textContent = "Fibonacci: " + data.fibonacci.join(", ");
+
+        //         // Hiển thị mỗi số dưới dạng exponential format nếu đủ lớn
+        //         const formatted = data.fibonacci.map((val, i) => {
+        //             const num = BigInt(val);
+        //             const asNumber = Number(num); // Chuyển BigInt về Number
+        //             if (asNumber < Number.MAX_SAFE_INTEGER) {
+        //                 return asNumber.toString(); // Hiển thị bình thường nếu nhỏ
+        //             } else {
+        //                 return asNumber.toExponential(); // Hiển thị kiểu khoa học nếu lớn
+        //             }
+        //         });
+        //         resultDiv.textContent = "Fibonacci (formatted): " + formatted.join(", ");
+
+        //     } catch (err) {
+        //         resultDiv.textContent = "Error: " + err.message;
+        //     }
+        // }
+        function formatBigIntExp(str) {
+            const len = str.length;
+            if (len <= 20) return str; // Nếu số nhỏ thì hiển thị nguyên
+            const firstDigit = str[0];
+            const afterDot = str.slice(1, 7); // Lấy 6 chữ số tiếp theo
+            return `${firstDigit}.${afterDot}e+${len - 1}`;
+        }
+
         async function getFibonacci() {
             const n = document.getElementById('n').value;
             const resultDiv = document.getElementById('result');
             resultDiv.textContent = "Loading...";
+
             try {
                 const response = await fetch(`http://localhost:3000/fibonacci?n=${n}`);
                 if (!response.ok) throw new Error("Invalid response");
                 const data = await response.json();
-                resultDiv.textContent = "Fibonacci: " + data.fibonacci.join(", ");
+
+                const formatted = data.fibonacci.map(formatBigIntExp);
+                resultDiv.textContent = "Fibonacci (formatted): " + formatted.join(", ");
             } catch (err) {
                 resultDiv.textContent = "Error: " + err.message;
             }
