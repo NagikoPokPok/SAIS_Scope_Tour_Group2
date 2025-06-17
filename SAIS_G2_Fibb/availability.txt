@@ -1,0 +1,4 @@
+// Bui Thanh Nghia
+1. How does "availability" relate to "maintainability" and "reliability" ?
+2. Which is the lowest cost way should be use to recover from faults when a database in Scope Tour fail ?
+3. Can we prevent faults by removal from sevice easy when the system is too complicated?
