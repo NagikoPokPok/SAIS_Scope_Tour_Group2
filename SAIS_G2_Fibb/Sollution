@@ -1,4 +1,4 @@
-# solution 1: Fibonacci API with Cache
+Solution 1: Fibonacci API with Cache
 ; 1. Dùng bộ nhớ đệm (cache) tại server
 ;  - Khởi tạo mảng fibonacciCache để lưu sẵn 100.000 số Fibonacci đầu tiên.
 ;  - Hàm generateFibonacciCache() được gọi ngay khi server khởi động, sinh toàn bộ dãy và lưu vào RAM.
@@ -15,7 +15,7 @@
 ;  - Dữ liệu được định dạng bằng hàm formatBigIntExp() để hiển thị gọn (exponential format).
 ;  - Giao diện hiển thị theo dạng phân trang 3 cột (client-side pagination) với 1.000 số mỗi trang.
 
-# solution 2: Fibonacci API with On-Demand Computation and Pagination
+Solution 2: Fibonacci API with On-Demand Computation and Pagination
 ; 1. Tính toán theo từng trang tại server
 ;  - Server chỉ tính toán một phần dãy Fibonacci theo offset và limit thay vì toàn bộ dãy.
 ;  - Ví dụ: Nếu client yêu cầu trang 5 (hiển thị từ số thứ 4001 đến 5000), server chỉ tính fib[4000] đến fib[4999].
