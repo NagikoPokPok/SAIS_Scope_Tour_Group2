@@ -9,6 +9,6 @@
 3. Nếu hệ thống lưu trữ file bài tập bị lỗi ScopeTour như , hệ thống có thể tự động chuyển sang một bản sao khác không?
 
 // Bui Thanh Nghia
-1. How does "availability" relate to "maintainability" and "reliability" ?
-2. Which is the lowest cost way should be use to recover from faults when a database in Scope Tour fail ?
-3. Can we prevent faults by removal from sevice easy when the system is too complicated?
+1. Should ScopeTour remain 24/7 or should it shut down 1 hour daily to backup data?
+2. Which is the lowest cost way should be use to recover from faults when a database in Scope Tour fail?
+3. Can we prevent faults by removal from sevice easily when the system like ScopeTour is too complicated and the developer responsible for system allocation coding is still inexperienced?
