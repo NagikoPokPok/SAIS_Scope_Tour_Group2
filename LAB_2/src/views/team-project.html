@@ -1,0 +1,538 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="icon" type="image/png" href="../public/img/introduction/icon.png">
+  <title>Scope Tour</title>
+  <!-- Boostrap -->
+  <link href="../public/css/main.min.css" rel="stylesheet">
+
+  <!-- Main style and font-awesome icon -->
+  <link rel="stylesheet" href="../public/css/main-style.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css" integrity="sha512-Evv84Mr4kqVGRNSgIGL/F/aIDqQb7xQ2vcrdIwxfjThSH8CSR7PBEakCr51Ck+w+/U6swU2Im1vVX0SVk9ABhg==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+  
+  <!-- Main -->
+  <link rel="stylesheet" href="../public/css/list-goal-team.css">
+  <link rel="stylesheet" href="../public/css/team-project.css">
+
+  <!-- Modal filter -->
+  <link rel="stylesheet" href="../public/css/components/filter-modal.css">
+
+  <!-- Modal sort -->
+  <link rel="stylesheet" href="../public/css/components/sort-modal.css">
+
+  <!-- Layout delete -->
+  <link rel="stylesheet" href="../public/css/components/layout-delete.css">
+
+  <!-- Modal confirmation -->
+   <link rel="stylesheet" href="../public/css/components/confirmation-modal.css">
+
+  <!-- Multiple emails in input -->
+  <link rel="stylesheet" href="../public/css/multiple-emails-input/email.css">
+  <link rel="stylesheet" href="../public/css/multiple-emails-input/examples.css">
+  <script type="text/javascript" src="../js/list-goal-team-sidebar.js" defer></script>
+</head>
+<body>
+  <!--Begin: SideBar -->
+  <custom-sidebar data-active-menu="team"></custom-sidebar>
+  <!--End: SideBar -->
+  
+  <!--Begin: Main Content -->
+  <main>
+    <!--Begin: Header -->
+    <div id="header">
+      <div class="header-user">
+        <div class="user-avatar">
+          <i class="fa-solid fa-circle-user"></i>
+        </div>
+        <div class="user-name">
+          <h3 class="my-0">Trần Quang Hiếu</h3>
+        </div>
+        <div class="user-streak">
+          <img src="../public/img/list-team-goal/slider2.png" alt="" class="icon-streak">
+          <div class="number-streak">
+            <span>30</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="header-time">
+        <h4 class="time my-0">
+          9:41
+        </h4>
+      </div>
+    </div>
+    <!--End: Header -->
+    
+    <!-- Begin: Button List -->
+    <div id="buttons">
+      <div class=" button-list">
+        <div class="create-btn">
+          <button data-bs-toggle="modal" 
+          data-bs-target="#reg-modal">
+            <i class="fa-solid fa-circle-plus"></i>
+            <span>Create</span>
+          </button>
+        </div> 
+
+        <div class="search-btn">
+          <input  type="email" placeholder="Seach your subject name" required="" name="" id="searchSubject" class="email">
+          <i class="fa-solid fa-magnifying-glass"></i>
+        </div>
+
+        <ul class="button-list-second">
+          <li onclick=openLayoutDelete()>
+            <i class="fa-solid fa-trash-can"></i>
+            <span>Delete</span>
+          </li>
+          <li data-bs-toggle="modal" 
+            data-bs-target="#modal-filter">
+            <i class="fa-solid fa-filter"></i>
+            <span>Filter</span>
+          </li>
+          <li data-bs-toggle="modal" 
+          data-bs-target="#modal-sort">
+            <i class="fa-solid fa-sort"></i>
+            <span>Sort</span>
+          </li>
+        </ul>
+      </div>
+    </div>
+
+
+    <!-- MODAL CREATE Subject itself -->
+   <!-- fade: hiệu ứng chuyển đổi mở dần khi modal xuất hiện hoặc biến mất -->
+  <div class="modal fade" id="reg-modal" 
+    tabindex="-1" 
+    aria-labelledby="modal-title" 
+    aria-hidden="true"
+    >
+    <!-- modal-dialog-centered: modal sẽ nằm giữa khung hình, còn mặc định là nằm phía trên -->
+      <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="modal-title">Create a subject</h5>
+            <!-- dismiss: Khi click vào button close thì sẽ đóng modal -->
+            <button type="button" class="btn-close" 
+              data-bs-dismiss="modal" 
+              aria-label="Close">
+              </button>
+          </div>
+          <form id="createSubjectForm">
+            <div class="modal-body">
+              <label for="modal-subject-name" class="form-label my-1">
+                <span>Subject name</span>
+                <div class="icon-important">
+                  <i class="fa-solid fa-asterisk"></i>
+                </div>
+              </label>
+              <input type="text" class="form-control mb-3" id="modal-subject-name" required 
+                      placeholder="IT">
+
+              <!-- <label for="modal-professional" class="form-label my-1">Professional</label>
+              <input type="text" class="form-control mb-3" id="modal-professional" required id="" placeholder="CMU-CS 445 BIS"> -->
+
+              <label for="modal-subject-des" class="form-label my-1">Description</label>
+              <input type="text" class="form-control mb-3" id="modal-subject-des"  placeholder="CMU-CS 442">
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+              <button type="submit" class="btn btn-primary">Create</button>
+            </div>
+          </form>
+          
+        </div>
+      </div>
+  </div>
+
+  <!-- MODAL UPDATE SUBJECT -->
+  <div class="modal fade" id="updateSubjectModal" tabindex="-1" aria-labelledby="updateSubjectModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="updateSubjectModalLabel">Update Subject</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <form id="updateSubjectForm">
+          <div class="modal-body">
+              <input type="hidden" id="update-subject-id">
+              <div class="mb-3">
+                  <label for="update-subject-name" class="form-label">Subject Name</label>
+                  <input type="text" class="form-control" id="update-subject-name" required>
+              </div>
+              <div class="mb-3">
+                  <label for="update-subject-description" class="form-label">Description</label>
+                  <textarea class="form-control" id="update-subject-description" rows="3"></textarea>
+              </div>
+          </div>
+          <div class="modal-footer">
+              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+              <button type="submit" class="btn btn-primary">Update Subject</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL FILTER subject itself -->
+   <!-- fade: hiệu ứng chuyển đổi mở dần khi modal xuất hiện hoặc biến mất -->
+    <div class="modal fade" id="modal-filter" 
+    tabindex="-1" 
+    aria-labelledby="modal-title" 
+    aria-hidden="true"
+    >
+    <!-- modal-dialog-centered: modal sẽ nằm giữa khung hình, còn mặc định là nằm phía trên -->
+      <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="modal-title">Filter for: All subjects</h5>
+            <!-- dismiss: Khi click vào button close thì sẽ đóng modal -->
+            <button type="button" class="btn-close" 
+              data-bs-dismiss="modal" 
+              aria-label="Close">
+              </button>
+          </div>
+          <!-- <form action=""> -->
+            <div class="modal-body">
+             
+              <!-- Begin: form check time create -->
+              <div class="form-check-time-join">
+                <div class="form-check-title">
+                  <img src="../public/img/filter-team/watch.png" alt="streak" class="icon-streak">
+                  <h6 class="">Time create the subject</h6>
+                </div>
+                <div class="container p-4">
+                  <div class="row row-cols-2">
+                    <div class="col">
+                      <div class="form-check">
+                        <input class="form-check-input" type="checkbox" value="" id="low-time">
+                        <label class="form-check-label" for="low-time">
+                          Today
+                        </label>
+                      </div>
+                    </div>
+
+                    <div class="col">
+                      <div class="form-check">
+                        <input class="form-check-input" type="checkbox" value="" id="medium-time">
+                        <label class="form-check-label" for="medium-time">
+                          Yesterday
+                        </label>
+                      </div>
+                    </div>
+
+                    <div class="col">
+                        <div class="form-check">
+                        <input class="form-check-input" type="checkbox" value="" id="high-time">
+                        <label class="form-check-label" for="high-time">
+                          Last week
+                        </label>
+                      </div>
+                    </div>
+
+                    <div class="col">
+                        <div class="form-check">
+                        <input class="form-check-input" type="checkbox" value="" id="extreme-time">
+                        <label class="form-check-label" for="extreme-time">
+                          Last month
+                        </label>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <!-- End: form check time join -->
+
+                                
+            </div>
+            <div class="modal-footer">
+              <button onclick=uncheckAllItemModalFilter() type="button" class="btn btn-secondary">Remove</button>
+              <button type="submit" class="btn btn-primary">Apply filters</button>
+            </div>
+          <!-- </form> -->
+          
+        </div>
+      </div>
+    </div>
+
+   <!-- MODAL SORT -->
+   <div class="modal fade" id="modal-sort" 
+   tabindex="-1" 
+   aria-labelledby="modal-title" 
+   aria-hidden="true"
+   >
+   <!-- modal-dialog-centered: modal sẽ nằm giữa khung hình, còn mặc định là nằm phía trên -->
+     <div class="modal-dialog modal-dialog-centered">
+       <div class="modal-content">
+         <div class="modal-header">
+           <h5 class="modal-title" id="modal-title">Sort for: All subjects</h5>
+           <!-- dismiss: Khi click vào button close thì sẽ đóng modal -->
+           <button type="button" class="btn-close" 
+             data-bs-dismiss="modal" 
+             aria-label="Close">
+             </button>
+         </div>
+         <!-- <form action=""> -->
+           <div class="modal-body">
+             <!-- Begin: form check criteria of sort -->
+             <div class="form-check-criteria-sort">
+               <div class="form-check-title">
+                 <img src="../public/img/list-team-goal/slider2.png" alt="streak" class="icon-streak">
+                 <h6 class="">Criteria of sort</h6>
+               </div>
+               <div class="container p-4">
+                 <div class="row row-cols-2">
+                   <div class="col">
+                       <div class="form-check">
+                       <input class="form-check-input" type="radio" name="criteria-sort" value="" id="name">
+                       <label class="form-check-label" for="name">
+                         Name
+                       </label>
+                     </div>
+                   </div>
+
+                   <div class="col">
+                       <div class="form-check">
+                         <input class="form-check-input" type="radio" name="criteria-sort" value="" id="time-join">
+                         <label class="form-check-label" for="time-join">
+                           Time create
+                         </label>
+                     </div>
+                   </div>
+
+                 </div>
+               </div>
+             </div>
+             <!-- End: form check criteria of sort -->
+             
+             <!-- Begin: form check type -->
+             <div class="form-check-type-sort">
+               <div class="form-check-title">
+                 <img src="../public/img/list-team-goal/slider2.png" alt="streak" class="icon-streak">
+                 <h6 class="">Type of sort</h6>
+               </div>
+               <div class="container p-4">
+                 <div class="row row-cols-2">
+                   <div class="col">
+                     <div class="form-check">
+                       <input class="form-check-input" type="radio" name="type-sort" value="" id="ascending">
+                       <label class="form-check-label" for="ascending">
+                         Ascending
+                       </label>
+                     </div>
+                   </div>
+
+                   <div class="col">
+                     <div class="form-check">
+                       <input class="form-check-input" type="radio" name="type-sort" value="" id="descending">
+                       <label class="form-check-label" for="descending">
+                         Descending
+                       </label>
+                     </div>
+                   </div>
+
+                 </div>
+               </div>
+             </div>
+             <!-- End: form check type -->
+
+           </div>
+           <div class="modal-footer">
+             <button onclick=uncheckAllItemModalSort() type="button" class="btn btn-secondary">Remove</button>
+             <button type="submit" class="btn btn-primary">Apply sort</button>
+           </div>
+         <!-- </form> -->
+         
+       </div>
+     </div>
+   </div>
+
+
+    <!-- LAYOUT DELETE MANY ITEMS -->
+     <div class="layout-delete-many-items">
+      <div class="container-fluid d-flex mt-4">
+          <h5 class="number-item-selected m-0">
+            <span class="number ms-4">0</span>
+            <span class="des">Item selected</span>
+          </h5>
+          
+          <div class="action-list">
+            <div class="select-all">
+              <div class="form-check mb-0">
+                <input class="form-check-input" type="checkbox" value="" id="select-all">
+                <label class="form-check-label" for="select-all">
+                  Select All
+                </label>
+              </div>
+            </div>
+
+            <div class="delete-items">
+              <!-- <i class="fa-solid fa-trash-can"></i>   -->
+              <span>Delete</span>          
+            </div>
+
+            <div class="close-layout" onclick=closeLayoutDelete()>
+              <i class="fa-regular fa-circle-xmark"></i>
+              <span>Close</span> 
+            </div>
+          </div>
+      </div>
+     </div>
+    <!-- End: Button List -->
+
+    <!-- Begin: subject List -->
+
+    <div id="subject">
+
+      <h5 class="heading">
+        <span>Subjects of</span>
+        <span class="team-name">Rumble team</span>
+      </h4>
+
+      
+
+      <ol id="SubjectList" class="olcards">
+
+
+      </ol>
+
+
+
+
+      <!-- MODAL CONFIRMATION DELETE -->
+      <div class="modal fade" id="modal-confirmation-delete" 
+      tabindex="-1" 
+      aria-labelledby="modal-title" 
+      aria-hidden="true"
+      >
+      <!-- modal-dialog-centered: modal sẽ nằm giữa khung hình, còn mặc định là nằm phía trên -->
+        <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+          <div class="modal-content">
+            <div class="modal-header">
+              <i class="fa-solid fa-trash-can type-confirmation-img"></i>
+              <h5 class="modal-title ms-2 fw-bold" id="modal-title">
+                Delete
+                <span class="type-of-object">Subject</span>
+              </h5>
+              <!-- dismiss: Khi click vào button close thì sẽ đóng modal -->
+              <button type="button" class="btn-close" 
+                data-bs-dismiss="modal" 
+                aria-label="Close">
+                </button>
+            </div>
+            <!-- <form action=""> -->
+              <div class="modal-body">
+                <div class="question-confirmation d-flex align-items-center fs-5 fw-medium">
+                  <span>Are you sure want to delete</span>
+                  <span class="object-deleted-name fw-semibold my-0 mx-1">
+                    CDIO
+                  </span>
+                  <span>?</span>
+                </div>
+
+                <div class="warning mt-2">
+                  <i class="fa-solid fa-triangle-exclamation"></i>
+                  <span class="warning-content ms-1">
+                    By Deleting this
+                    <span class="type-of-object">Subject</span>
+                    ,
+                    <span class="waring-desc">all the data about subject and task will also be deleted.</span>
+                  </span>
+                </div>
+                
+                
+              </div>
+              <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">No, Cancel</button>
+                <button type="submit" class="btn btn-primary btn-yes">
+                  Yes,
+                  <span class="type-of-action">Delete</span>
+                </button>
+              </div>
+            <!-- </form> -->
+            
+          </div>
+        </div>
+      </div>
+
+       <!-- MODAL CONFIRMATION EDIT -->
+       <div class="modal fade" id="modal-confirmation-edit" 
+       tabindex="-1" 
+       aria-labelledby="modal-title" 
+       aria-hidden="true"
+       >
+       <!-- modal-dialog-centered: modal sẽ nằm giữa khung hình, còn mặc định là nằm phía trên -->
+         <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+           <div class="modal-content">
+             <div class="modal-header">
+               <i class="fa-solid fa-pen-to-square type-confirmation-img"></i>
+               <h5 class="modal-title ms-2 fw-bold" id="modal-title">
+                 Edit
+                 <span class="type-of-object">Subject</span>
+               </h5>
+               <!-- dismiss: Khi click vào button close thì sẽ đóng modal -->
+               <button type="button" class="btn-close" 
+                 data-bs-dismiss="modal" 
+                 aria-label="Close">
+                 </button>
+             </div>
+             <!-- <form action=""> -->
+               <div class="modal-body">
+                 <div class="question-confirmation d-flex align-items-center fs-5 fw-medium">
+                   <span>Are you sure want to edit</span>
+                   <span class="object-deleted-name fw-semibold my-0 mx-1">
+                     CDIO
+                   </span>
+                   <span>?</span>
+                 </div>
+ 
+                 <div class="warning mt-2">
+                   <i class="fa-solid fa-triangle-exclamation"></i>
+                   <span class="warning-content ms-1">
+                    Make sure your changes are correct before saving, as they may impact team collaboration.
+                   </span>
+                 </div>
+                 
+                 
+               </div>
+               <div class="modal-footer">
+                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">No, Cancel</button>
+                 <button type="submit" class="btn btn-primary btn-yes">
+                   Yes,
+                   <span class="type-of-action">Edit</span>
+                 </button>
+               </div>
+             <!-- </form> -->
+             
+           </div>
+         </div>
+       </div>
+
+       <!-- MODAL STATUS ACTION -->
+       <div id="modal-status-action-container"></div>
+
+    </div>
+    <!-- End: subject List -->
+
+  </main>
+  <!--End: Main Content -->
+
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+
+  <script src="../js/component.js"></script>
+  <script type="module" src="../public/activity/time.js"></script>
+  <script type="module" src="../public/activity/subject.js"></script>
+
+  <!-- layout delete -->
+   <script src="../js/toggeLayoutDelete.js"></script>
+
+    <!-- Modal status of action -->
+    <script src="../js/show-modal-action-success.js"></script>
+
+    <!-- Uncheck all item in modal -->
+  <script src="../js/uncheck-item-modal.js"></script>
+
+</body>
+</html>

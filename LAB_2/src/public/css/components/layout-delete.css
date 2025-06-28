@@ -1,0 +1,107 @@
+  /* LAYOUT DELETE ITEMS */
+
+  .layout-delete-many-items {
+    height: 0;
+    opacity: 0;
+    transform: translateX(100%);
+    overflow: hidden;
+    transition: opacity 0.3s ease, transform 0.3s ease, height 0.3s ease;
+  }
+  
+  .layout-delete-many-items.show {
+    height: 170px;
+    opacity: 1;
+    transform: translateX(0);
+  }
+  
+  .layout-delete-many-items .container-fluid {
+    background-color: #fff;
+    padding: 16px 32px;
+    border-radius: 40px;
+    align-items: center;
+    justify-content: space-between;
+    box-shadow: 0 0 12px rgba(0, 0, 0, 0.2);
+    padding: 0;
+    display: flex;
+  
+  }
+  
+  .layout-delete-many-items .action-list {
+    display: flex;
+    font-size: 1.25rem;
+    justify-content: space-between;
+    align-items: center;
+    height: 80px;
+  }
+  
+  .layout-delete-many-items .action-list > * {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    white-space: nowrap;
+  }
+  
+  .layout-delete-many-items .action-list .select-all {
+    input {
+      border-color: #ccc;
+    }
+  }
+  
+  .layout-delete-many-items .action-list .delete-items {
+    margin: auto 24px;
+    span {
+      background-color: var(--primary-color);
+      padding: 8px 20px;
+      border-radius: 40px;
+      color: #fff;
+      
+    }
+  }
+  
+  
+  .layout-delete-many-items .action-list .delete-items:hover {
+    cursor: pointer;
+    opacity: 0.8;
+  }
+  
+  .layout-delete-many-items .action-list .select-all:hover .form-check-input {
+    cursor: pointer;
+    border-color: var(--primary-color);
+    border-width: 2px;
+  }
+  
+  .layout-delete-many-items .action-list .select-all:hover .form-check-label {
+    color: var(--primary-color);
+    cursor: pointer;
+  }
+  
+  .layout-delete-many-items .action-list .form-check-input:checked + .form-check-label {
+    color: var(--primary-color);
+  }
+  
+  .layout-delete-many-items .action-list .close-layout {
+    background-color: rgba(217, 217, 217, 0.4);
+    height: 100%;
+    border-radius: 40px;
+  }
+  
+  
+  .layout-delete-many-items .action-list .close-layout {
+    
+    i {
+      padding-left: 24px;
+    }
+  
+    span {
+      margin-left: 12px;
+      margin-right: 0;
+      padding-right: 24px;
+    }
+  }
+  
+  .layout-delete-many-items .action-list .close-layout:hover {
+    cursor: pointer;
+    opacity: 0.8;
+    color: green;
+  }

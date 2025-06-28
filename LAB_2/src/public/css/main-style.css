@@ -1,0 +1,16 @@
+:root {
+    --primary-color: #FF7B4D;
+    --secondary-color: #FFB54A;
+    --third-color: #FF7B4D;
+    --success-color: #4caf50;
+    --error-color: #f44336;
+    --background-color: #FFE1CC;
+    --gray-color: #D9D9D9;
+    --blue-color: #3569CA;
+}
+
+
+@font-face {
+    font-family: 'Baloo2';
+    src: url('../font-text/Baloo2-VariableFont_wght.ttf') format('truetype');
+}

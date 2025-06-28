@@ -1,0 +1,509 @@
+/* Reset CSS */
+* {
+    padding: 0;
+    margin: 0;
+    box-sizing: border-box;
+    font-family: 'Baloo2';
+}
+
+html {
+    scroll-behavior: smooth;
+}
+
+
+@font-face {
+    font-family: 'GochiHand';
+    src: url('../font-text/GochiHand-Regular.ttf') format('truetype');
+}
+
+
+html {
+    font-family: 'Baloo2', sans-serif;
+}
+
+hr {
+    border: 0;
+    height: 0.75px; /* Chiều cao của đường */
+    background-color: #C1C1C1; /* Màu đen */
+    opacity: 0.6;
+}
+
+/* Header */
+#header {
+    height: 46px;
+    background-color: #fff;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 1;
+    display: flex; /* Đặt flex để bố cục dễ quản lý */
+    align-items: center; /* Căn giữa các phần tử con theo chiều dọc */
+    padding: 0 16px; /* Tạo khoảng cách bên trong */
+    box-shadow: 0 0 10px rgba(0,0,0,0.3);
+}
+
+/* Logo */
+#logo {
+    display: flex;
+    align-items: center; /* Căn giữa logo và tên theo chiều dọc */
+    height: 100%; /* Giữ chiều cao bằng với header */
+}
+
+#header #logo .logo-img {
+    width: 35px;
+    height: 100%;
+    object-fit: contain; /* Giữ hình ảnh cân đối nếu có kích thước khác nhau */
+}
+
+#header #logo .logo-name {
+    color: #000;
+    font-size: 20px;
+    font-weight: 1000;
+    margin-left: 5px;
+}
+
+/* Nav */
+#nav {
+    height: 100%;
+    display: flex;
+    flex: 3;
+    align-items: center;
+    font-size: 20px;
+    justify-content: center;
+}
+
+#nav li {
+    list-style: none;
+    height: calc(100%);
+    padding: 0 12px;
+}
+
+#nav li a {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100%; /* Chiều cao bằng li */
+    text-decoration: none;
+    text-transform: uppercase;
+    color: #000;
+    padding: 0 24px;
+    font-weight: 500;
+}
+
+#nav li:hover a {
+    border-radius: 10px;
+    background-color: var(--primary-color);
+    color: #fff;
+}
+
+/* Search Button */
+.search-btn {
+    flex: 1;
+    display: flex;
+    background-color: var(--primary-color);
+    border-radius: 10px;
+    max-width: 200px;
+    height: calc(100% - 16px);
+    max-height: 30px;
+   
+}
+
+.search-btn .icon-search-btn {
+    margin-left: 10px;
+    align-self: center;
+}
+
+
+
+/* Content */
+#content {
+    margin-top: 46px;
+}
+/* Home */
+#home {
+    display: flex;
+    margin-top: 46px;
+    height: calc(100vh - 46px); /* Chiều cao bằng viewport trừ đi phần header */
+}
+
+#home .home-img-1 {
+    height: 100%; /* Chiều cao bằng với #home */
+    width: 2000px;
+    object-fit: cover; /* Ảnh bao phủ toàn bộ */
+    margin-left: -40px;
+   
+}
+
+#home .home-img-2 {
+   height: 70%;
+   width: 100px;
+   align-self: self-end; 
+}
+
+#home .home-content {
+    padding: 30px; /* Thêm khoảng cách nếu cần */
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    max-height: 100%;
+    overflow: hidden;
+}
+
+#home .home-content .home-heading {
+    font-family: 'GochiHand';
+    font-size: 100px;
+    text-align: center;
+}
+
+#home .home-content .home-slogan {
+    text-align: center;
+    font-size: 24px;
+    margin-top: 12px;
+}
+
+#home .home-content .home-introduction {
+    text-align: justify;
+    line-height: 1.4;
+    padding: 12px 24px;
+    font-size: 16px;
+    
+}
+
+#home .home-content .sign-up-btn {
+    background-color: var(--primary-color);
+    border-style: none;
+    border-radius: 10px;
+    padding: 12px 12px;
+    font-size: 18px;
+    color: #fff;
+    width: 50%;
+    align-self: center;
+    font-weight: bold;
+    margin-top: 24px;
+}
+
+#home .home-content .sign-up-btn:hover {
+    opacity: 0.6;
+    cursor: pointer;
+}
+
+
+/* Slider */
+#slider {
+    position: relative;
+    height: 650px;
+    width: 100%;
+    max-width: 100vw;
+    overflow: hidden;
+    margin-top: 24px;
+}
+
+#slider .list {
+    position: absolute;
+    width: max-content;
+    height: 100%;
+    left: 0;
+    top: 0;
+    display: flex;
+    transition: 1s;
+}
+
+#slider .about-us {
+    display: flex;
+    height: 100%;
+    width: 100vw;
+    transition: 0.3s;
+    justify-content: space-evenly;
+}
+
+#slider .about-us .about-us-img {
+    padding: 32px 0;
+    width: 30%;
+    object-fit: contain;
+    
+}
+
+#slider .about-us .about-us-content {
+    
+    align-self: center;
+    padding: 0 24px;
+    text-align: left;
+    width: 30%;
+}
+
+.about-us .about-us-content .about-us-heading {
+    font-size: 24px;
+}
+
+.about-us .about-us-content .about-us-des {
+    font-size: 18px;
+    text-align: left;
+    margin-top: 8px;
+}
+
+#slider .slider1{
+    background-color: var(--background-color);
+}
+
+#slider .slider2 {
+    background-color: var(--third-color);
+}
+
+#slider .slider3 {
+    background-color: var(--secondary-color);
+}
+
+#slider .buttons{
+    position: absolute;
+    top: 45%;
+    left: 5%;
+    width: 90%;
+    display: flex;
+    justify-content: space-between;
+    
+}
+#slider .buttons button{
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    background-color: #fff5;
+    color: #000;
+    border: none;
+    font-family: monospace;
+    font-weight: bold;
+}
+
+#slider .buttons button:hover {
+    opacity: 0.8;
+    cursor: pointer;
+}
+
+#slider .dots{
+    position: absolute;
+    bottom: 12px;
+    left: 0;
+    color: #000;
+    width: 100%;
+    display: flex;
+    justify-content: center;
+}
+#slider .dots li{
+    list-style: none;
+    width: 6px;
+    height: 6px;
+    background-color: #ccc;
+    margin: 10px;
+    border-radius: 20px;
+    transition: 0.5s;
+    
+}
+#slider .dots li.active{
+    width: 30px;
+}
+
+/* Attractive */
+#attractive {
+    display: flex;
+    background-color: #fff;
+    padding: 40px;
+}
+
+#attractive .attr-img {
+    width: 50%;
+    display: grid;
+    grid-template-columns: repeat(2, 1fr); /* 2 cột */
+    grid-gap: 20px; /* Khoảng cách giữa các ảnh */
+    padding: 20px;
+    background-color: var(--background-color);
+    
+    border-radius: 10px;
+
+}
+
+#attractive .attr-img .attr-img-item {
+    width: 100%; /* Chiếm toàn bộ chiều rộng của ô */
+    height: auto;
+    aspect-ratio: 1 / 1; /* Đảm bảo giữ tỉ lệ ảnh hình vuông */
+    object-fit: cover; /* Cắt ảnh nếu cần để giữ tỉ lệ */
+    border-radius: 10px; /* Bo góc nếu muốn */
+}
+
+.attr-content {
+    align-self: center;
+    margin-left: auto;
+    margin-right: auto;
+    padding: 0 32px;
+    display: flex;
+    flex-direction: column;
+}
+
+.attr-content .attr-content-question {
+    font-size: 20px;
+    color: var(--primary-color);
+    text-transform: uppercase;
+    font-weight: 600;
+}
+
+.attr-content .attr-content-heading {
+    font-size: 36px;
+    line-height: 1.3;
+    margin-top: 10px;
+}
+
+.attr-content .atrr-content-subtitle {
+    margin-top: 12px;
+}
+
+.attr-content ul {
+    list-style: none;
+    margin-top: 12px;
+    font-size: 18px;
+    font-weight: 500;
+}
+
+.attr-content ul li i {
+    color: var(--primary-color);
+    margin-right: 8px;
+}
+
+.attr-footer {
+    margin-top: 32px;
+}
+
+/* Footer */
+#footer {
+    padding: 40px 40px 60px 40px;
+    background-color: var(--background-color);
+}
+
+/* Footer Heading */
+.footer-heading {
+    display: flex;
+    margin-bottom: 16px;
+}
+
+.footer-heading h1 {
+    width: 80%;
+    display: inline-block;
+    color: var(--primary-color);
+}
+
+/* Footer Content */
+.footer-content {
+    display: flex;
+    margin-top: 32px;
+    justify-content: space-between;
+    margin-bottom: 24px;
+    
+}
+
+.footer-content .footer-content-contact {
+    height: 100%;
+    flex: 1;
+}
+
+.footer-content-contact .list-icons {
+    list-style: none;
+    
+}
+
+.footer-content-contact .list-icons li {
+    float: left;
+    padding: 0 4px;
+    color: var(--primary-color);
+    font-size: 32px;
+}
+
+.footer-content-contact .list-icons li:hover {
+    opacity: 0.8;
+    cursor: pointer;
+}
+
+.footer-content .footer-content-company {
+    height: 100%;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.footer-content-company .list-company {
+    list-style: none;
+    opacity: 0.7;
+}
+
+.footer-content .footer-content-courses {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    margin-left: 50px;
+}
+
+.footer-content-courses .list-courses {
+    list-style: none;
+    opacity: 0.7;
+}
+
+.footer-content .footer-content-subcribe {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+}
+
+.footer-content-subcribe .email {
+    border-style: none;
+    border-radius: 10px;
+    padding: 18px;
+    margin-top: 8px;
+    outline-color: var(--primary-color);
+}
+
+.footer-content-subcribe .subcribe-btn {
+    border-style: none;
+    border-radius: 100px;
+    margin-top: 8px;
+    background-color: var(--primary-color);
+    color: #fff;
+    padding: 12px;
+    width: 50%;
+    font-weight: bold;
+    font-size: 16px;
+}
+
+.footer-content-subcribe .subcribe-btn:hover {
+    opacity: 0.8;
+    cursor: pointer;
+}
+
+/* Footer End */
+.footer-end {
+    display: flex;
+    margin-top: 16px;
+    justify-content: space-between;
+}
+
+.footer-end .footer-end-first {
+    display: flex;
+}
+
+.footer-end .footer-end-first .vertical-line {
+    width: 2px;
+    height: 10px; /* Chiều dài của đường */
+    background-color: #000;
+    margin: 0 20px; /* Khoảng cách hai bên */
+    align-self: center;
+}
+
+.footer-end .footer-end-second {
+    display: flex;
+}
+
+.footer-end .footer-end-second .vertical-line {
+    width: 2px;
+    height: 10px; /* Chiều dài của đường */
+    background-color: #000;
+    margin: 0 20px; /* Khoảng cách hai bên */
+    align-self: center;
+}
+

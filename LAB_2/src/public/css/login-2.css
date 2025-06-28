@@ -1,0 +1,223 @@
+/* Reset CSS */
+* {
+    padding: 0;
+    margin: 0;
+    box-sizing: border-box;
+    font-family: 'Baloo2';
+}
+
+html {
+    /* width: 100%; */
+}
+
+:root {
+    --primary-color: #FF7B4D;
+    --secondary-color: #FFB54A;
+    --third-color: #FF7B4D;
+    --success-color: #4caf50;
+    --error-color: #f44336;
+    --background-color: #FFE1CC;
+}
+body{
+    background-color: #fff;
+    display: flex;
+    justify-content: center; /* Căn giữa ngang */
+    align-items: center; /* Căn giữa dọc */
+     /* Chiều cao toàn màn hình */
+    margin: 0;
+    height: 100vh;
+    width: 100vw;
+}
+
+
+.first-login{
+    display: flex;
+    
+    align-items: center;
+    height: 80%;
+    width: 70%;
+    margin: auto;
+    border-radius: 32px; 
+    padding: 0px; 
+    background-color: white; 
+    box-shadow: 0 0 32px rgba(245,102,1, 0.3); 
+    position: relative;
+    overflow: hidden;
+    border-style: none;
+}
+
+
+.first-login .img-login2 {
+    position: relative; 
+    width: 100%;
+    height: 100%;
+    z-index: 0;
+
+    border-radius: 5px;  
+    flex: 2;
+    justify-content: center;
+    height: 120%;
+    margin-left: -8%;
+    
+    
+}
+
+.img-login2 .image-descr2{
+    height: 100%;
+    width: calc(100% - 32px);
+    object-fit: cover;
+    
+}
+
+
+
+.first-login .login-container{
+    position: relative;
+    border: #000;
+    height: auto; 
+    flex: 1;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding-right: 24px;
+}
+
+.title{
+    text-align: center;
+    color: #000;
+    font-weight: bold;
+    width: 300px;
+}
+
+.form-email{
+    display: flex;
+    justify-content: center;
+    width: calc(100% - 32px);
+}
+
+.form-email .email{
+    width: calc(100% - 50px); 
+    padding: 10px;
+    border: 0.7px solid #ccc;
+    border-radius: 10px; 
+    font-size: 16px;
+    outline: none;
+    margin-top: 32px;
+    margin-bottom: 8px;
+    width: 100%;
+}
+
+.form-password{
+    display: flex;
+    justify-content: center;
+    width: calc(100% - 32px);
+}
+
+.form-password .password{
+    width: 100%;
+    padding: 10px;
+    border: 0.7px solid #ccc; 
+    border-radius: 10px; 
+    font-size: 16px;
+    outline: none;
+    margin-bottom: 0px;
+    
+}
+
+.forgot-password-form{
+    width: auto;
+    text-decoration: none;
+    color: #F56601;
+    margin-top: 8px;
+    width: 100%;
+    text-align: left;
+}
+
+.forgot-password-form .forgot-password{
+    text-decoration: none;
+    color: #F56601;
+    font-size: 16px;
+    margin-left: 25px;
+}
+
+.btn-login{
+    display: block;
+    width: calc(100% - 32px);
+    padding: 10px;
+    border: none;
+    border-radius: 10px; 
+    font-size: 18px;
+    color: #fff;
+    outline: none;
+    margin-bottom: 8px;
+    background-color: #F56601;
+    margin-top: 16px;
+}
+.btn-login:hover{
+    opacity: 0.7;
+}
+
+.sign-up{
+    display: flex;
+    justify-content: center;
+    padding: 0;
+    
+}
+
+.sign-up .label{
+    font-size: 14px;
+    color: #ccc;
+}
+
+.sign-up .link-sign-up{
+    margin-left: 5px;
+    text-decoration: none;
+    color: #F56601;
+    font-size: 14px;
+}
+
+.login-gg-fb{
+    display: flex;
+    flex-direction: column;
+    margin-top: 8px;
+    gap: 5px;
+    font-size: 14px;
+    justify-content: center;
+    align-items: center;
+    margin-bottom: 100px;
+}
+
+.login-gg-fb .gg-login, .login-gg-fb .fb-login{
+    display: flex;
+    justify-content: center; /* Căn giữa theo chiều ngang */
+    align-items: center;
+    width: 200px;
+    height: 30px;
+    border: #ccc solid 0.1px ;
+    background-color: #fff;
+    border-radius: 4px;
+}
+
+.login-gg-fb .gg-login:hover, .login-gg-fb .fb-login:hover{
+    background-color: #ccc;
+}
+
+.login-gg-fb .facebook, .login-gg-fb .google{
+    color: #000;
+    opacity: 0.5;
+    text-align: center;
+}
+
+.login-gg-fb .facebook-img{
+    height: 25px;
+    width: 25px;
+    margin-right: 10px;
+}
+
+.login-gg-fb .google-img{
+    height: 25px;
+    width: 24px;
+    margin-right: 10px;
+    margin-left: -6px;
+}

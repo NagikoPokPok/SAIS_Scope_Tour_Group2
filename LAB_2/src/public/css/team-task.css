@@ -1,0 +1,289 @@
+*{
+  margin: 0;
+  padding: 0;
+  
+}
+html{
+  font-family: 'Baloo2', sans-serif;
+  line-height: 1.5rem;
+}
+body{
+  min-height: 100vh;
+  min-height: 100dvh;
+  background-color: var(--background-color);
+  display: grid;
+  grid-template-columns: auto 1fr;
+  font-family: 'Baloo2', sans-serif;
+  margin: 0;
+}
+
+/* Content */
+
+/* Task list */
+
+#task {
+    width: 100%;
+    height: 100%;
+    background-color: white;
+    margin-top: 24px;
+    border-radius: 10px;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.2);
+    padding: 40px;
+  }
+
+#task .list-task {
+    margin-top: 24px;
+}
+
+.list-task .item-submitted-task,
+.list-task .item-available-task {
+    width: 100%;
+    border: black;
+    border-radius: 0;
+    border-top: 1px solid var(--gray-color); /* Đặt độ dày, kiểu và màu sắc */
+}
+
+
+.list-task .check-task {
+    display: flex;
+    align-items: center;
+    justify-content: start;
+    
+}
+
+.list-task .checkbox-complete-task {
+    aspect-ratio: 1 / 1; /* Giữ tỷ lệ hình vuông */
+    width: 30px; /* Giới hạn kích thước tối đa */
+    appearance: none; /* Ẩn giao diện mặc định */
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    border: 2px solid var(--blue-color); /* Viền checkbox */
+    border-width: 3px;
+    border-radius: 50%; /* Bo tròn */
+    background-color: white;
+    cursor: pointer;
+    display: inline-block;
+    position: relative;
+    margin-right: 20px;
+
+}
+
+.list-task .checkbox-complete-task:hover {
+    background-color: rgba(53, 105, 202, 0.2);
+}
+
+/* .checkbox-complete-task:checked {
+  background-color: var(--blue-color);
+  border-color: var(--blue-color);
+  position: relative; 
+} */
+
+/* .checkbox-complete-task:checked::before {
+  content: "✔"; 
+  font-size: 14px;
+  color: white;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+} */
+
+/* Khi checkbox đã được chọn và hover vào, đổi màu dấu tick */
+.checkbox-complete-task:checked:hover::before {
+  color: var(--blue-color);
+}
+
+
+.list-task .task {
+    display: flex;
+    flex-direction: column;
+    
+    .task-title{
+      font-size: 18px;
+    }
+
+    .task-desc {
+      font-size: 16px;
+    }
+}
+
+.list-task .time-of-task {
+    
+  .status-of-task {
+    font-size: 18px;
+  }
+
+  .due-time {
+    font-size: 16px;
+  }
+}
+
+.list-task .time-of-task .due-time {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    hr {
+        width: 10px;
+        height: 1px;
+        margin: 0 8px;
+        background-color: black;
+        font-weight: 300;
+    }
+
+}
+
+.list-task .action-list div[class*="action-"]:hover i {
+  cursor: pointer;
+  transform: scale(1.1);
+  transition: all 0.1s ease-in-out;
+}
+
+
+  /* MODAL CREATE TEAM */
+  .examples {
+    display: flex;
+    width: 80%;
+    flex-direction: column;
+    margin: 2rem;
+  }
+  
+  .examples pre {
+    background-color: #f7f7f7;
+  }
+  
+  #sample1 {
+    display: block;
+    width: 100%;
+  }
+
+  .modal-footer .btn-primary {
+    color: #fff;
+  }
+
+  .modal-body label {
+    font-weight: 500;
+  }
+
+  #createTaskForm .form-check {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  #createTaskForm .form-check-input {
+    width: 24px;
+    height: 24px;
+    margin-top: auto;
+    margin-bottom: auto;
+    margin-right: 12px;
+  }
+
+
+  /* MODAL COMMENT TASK */
+#modal-comment-task .comment-box {
+    width: 100%;
+    max-width: 600px;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    padding: 10px;
+    display: flex;
+    flex-direction: column;
+    background: #fff;
+}
+
+#modal-comment-task textarea {
+    width: 100%;
+    height: 64px;
+    border: none;
+    outline: none;
+    font-size: 16px;
+    resize: none;
+    padding: 8px;
+}
+
+#modal-comment-task .comment-actions {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 0;
+}
+
+#modal-comment-task .icons i {
+    font-size: 18px;
+    margin-right: 10px;
+    cursor: pointer;
+    color: gray;
+}
+
+#modal-comment-task .buttons {
+    display: flex;
+    align-items: center;
+}
+
+#modal-comment-task .delete-comment-task {
+    
+    color: white;
+    cursor: pointer;
+}
+
+/* .comment {
+    background: #ff7f50;
+    border: none;
+    color: white;
+    font-size: 14px;
+    padding: 8px 12px;
+    border-radius: 5px;
+    cursor: pointer;
+} */
+
+#modal-comment-task .comment:hover {
+    opacity: 0.8;;
+}
+
+#accordion-body-comment-task .comment-header > * {
+  margin-right: 12px;
+}
+
+#accordion-body-comment-task .comment-header .letter-of-name {
+  
+  background-color: color-mix(in srgb, var(--letter-color) 20%, transparent);
+  width: 30px;  /* Đảm bảo chiều rộng */
+  height: 30px; /* Đảm bảo chiều cao */
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold; /* Nếu có chữ bên trong */
+  font-size: 16px;
+  color: black; /* Màu chữ */
+  border: 2px solid var(--letter-color);
+  
+}
+
+#accordion-body-comment-task .comment-header .name-member {
+  font-size: 18px;
+  
+}
+
+
+
+/* Ac */
+
+
+/* Set color of status of task */
+.status-of-task[data-status="In progress"] {
+  color: var(--success-color);
+}
+
+.status-of-task[data-status="Completed"] {
+  color: var(--blue-color);
+}
+
+.status-of-task[data-status="Overdue"] {
+  color: var(--error-color);
+}
+
+.status-of-task[data-status="Upcoming"] {
+  color: var(--secondary-color);
+}

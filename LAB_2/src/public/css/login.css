@@ -1,0 +1,216 @@
+/* Reset CSS */
+* {
+    padding: 0;
+    margin: 0;
+    box-sizing: border-box;
+    font-family: 'Baloo2';
+}
+
+
+
+:root {
+    --primary-color: #FF7B4D;
+    --secondary-color: #FFB54A;
+    --third-color: #FF7B4D;
+    --success-color: #4caf50;
+    --error-color: #f44336;
+    --background-color: #FFE1CC;
+}
+
+
+.error {
+    color: red;
+    font-size: 12px;
+    display: block;  /* Hiển thị lỗi theo dòng mới */
+    text-align: left;
+    margin-left: 25px;
+    margin-bottom: 8px;
+}
+
+
+body{
+    background-color: var(--background-color);
+    display: flex;
+    justify-content: center; /* Căn giữa ngang */
+    align-items: center; /* Căn giữa dọc */
+    height: 100vh; /* Chiều cao toàn màn hình */
+    margin: 0;
+}
+
+
+.first-login{
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 500px;
+    width: auto;
+    margin: auto;
+    border: 1px solid #ccc; 
+    border-radius: 10px; 
+    padding: 0px; 
+    background-color: white; 
+    box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.3); 
+}
+
+
+.first-login .img-login2 {
+    position: relative;
+    width: 100%; 
+    height: 100%;
+    border-radius: 5px;  
+    padding-right: 15px;
+    padding: 0px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.img-login2 .image-descr2{
+    min-height: 600px;
+    border-top-left-radius: 10px ;
+    border-bottom-left-radius: 10px ;
+}
+
+
+
+.first-login .login-container{
+    position: relative;
+    border: #000;
+    height: auto; 
+    padding: 32px;
+}
+
+.title{
+    text-align: center;
+    color: #757575;
+    font-weight: bold;
+    width: 300px;
+}
+
+.form-email{
+    display: flex;
+    justify-content: center;
+}
+
+.form-email .email{
+    width: 250px; 
+    padding: 8px;
+    border: 0.7px solid #ccc;
+    border-radius: 4px; 
+    font-size: 14px;
+    outline: none;
+    margin-top: 32px;
+    margin-bottom: 0px;
+}
+
+.form-password{
+    display: flex;
+    justify-content: center;
+}
+
+.form-password .password{
+    width: 250px; 
+    padding: 8px;
+    border: 0.7px solid #ccc; 
+    border-radius: 4px; 
+    font-size: 14px;
+    outline: none;
+    margin-bottom: 0px;
+    
+}
+
+.forgot-password-form{
+    width: auto;
+    text-decoration: none;
+    color: #F56601;
+    font-size: 12px;
+    margin-top: 8px;
+}
+
+.forgot-password-form .forgot-password{
+    text-decoration: none;
+    color: #F56601;
+    font-size: 12px;
+    margin-left: 25px;
+}
+
+.btn-login{
+    display: block;
+    width: 250px;
+    padding: 4px;
+    margin: 0 auto;
+    border: none;
+    border-radius: 3px; 
+    font-size: 18px;
+    color: #fff;
+    outline: none;
+    margin-bottom: 8px;
+    background-color: #F56601;
+    margin-top: 16px;
+    font-weight: 600;
+}
+.btn-login:hover{
+    opacity: 0.7;
+}
+
+.sign-up{
+    display: flex;
+    justify-content: center;
+    padding: 0;
+    margin-bottom: 24px;
+}
+
+.sign-up .label{
+    font-size: 14px;
+}
+
+.sign-up .link-sign-up{
+    margin-left: 5px;
+    text-decoration: none;
+    color: #F56601;
+    font-size: 14px;
+}
+
+.login-gg-fb{
+    display: flex;
+    flex-direction: column;
+    margin-top: 8px;
+    gap: 5px;
+    font-size: 14px;
+    justify-content: center;
+    align-items: center;
+}
+
+.login-gg-fb .gg-login, .login-gg-fb .fb-login{
+    display: flex;
+    justify-content: center; /* Căn giữa theo chiều ngang */
+    align-items: center;
+    width: 200px;
+    height: 30px;
+    border: #ccc solid 0.1px ;
+    background-color: #fff;
+}
+
+.login-gg-fb .gg-login:hover, .login-gg-fb .fb-login:hover{
+    background-color: #ccc;
+    cursor: pointer;
+}
+
+.login-gg-fb .facebook, .login-gg-fb .google{
+    color: #000;
+    opacity: 0.5;
+    text-align: center;
+}
+
+.login-gg-fb .facebook-img{
+    height: 25px;
+    width: 25px;
+    margin-right: 10px;
+}
+
+.login-gg-fb .google-img{
+    height: 25px;
+    width: 24px;
+    margin-right: 10px;
+    margin-left: -16px;
+}

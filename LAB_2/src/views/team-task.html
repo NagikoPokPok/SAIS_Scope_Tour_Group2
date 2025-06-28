@@ -1,0 +1,1018 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="icon" type="image/png" href="../public/img/introduction/icon.png">
+  <title>Scope Tour</title>
+  <!-- Boostrap -->
+  <link href="../public/css/main.min.css" rel="stylesheet">
+
+  <!-- Main style and font-awesome icon -->
+  <link rel="stylesheet" href="../public/css/main-style.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css" integrity="sha512-Evv84Mr4kqVGRNSgIGL/F/aIDqQb7xQ2vcrdIwxfjThSH8CSR7PBEakCr51Ck+w+/U6swU2Im1vVX0SVk9ABhg==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+  
+  <!-- Main -->
+  <link rel="stylesheet" href="../public/css/list-goal-team.css">
+  <link rel="stylesheet" href="../public/css/team-project.css">
+  <link rel="stylesheet" href="../public/css/team-task.css">
+
+  <!-- Modal filter -->
+  <link rel="stylesheet" href="../public/css/components/filter-modal.css">
+
+  <!-- Modal sort -->
+  <link rel="stylesheet" href="../public/css/components/sort-modal.css">
+
+  <!-- Modal confirmation -->
+  <link rel="stylesheet" href="../public/css/components/confirmation-modal.css">
+
+  <!-- Layout delete -->
+  <link rel="stylesheet" href="../public/css/components/layout-delete.css">
+
+  <!-- Multiple emails in input -->
+  <link rel="stylesheet" href="../public/css/multiple-emails-input/email.css">
+  <link rel="stylesheet" href="../public/css/multiple-emails-input/examples.css">
+  <script type="text/javascript" src="../js/list-goal-team-sidebar.js" defer></script>
+
+  <!-- Date Time Range Picker -->
+  <script type="text/javascript" src="https://cdn.jsdelivr.net/jquery/latest/jquery.min.js"></script>
+  <script type="text/javascript" src="https://cdn.jsdelivr.net/momentjs/latest/moment.min.js"></script>
+  <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.min.js"></script>
+  <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.css" />
+</head>
+<body>
+  <!--Begin: SideBar -->
+  <custom-sidebar data-active-menu="team"></custom-sidebar>
+  <!--End: SideBar -->
+  
+  <!--Begin: Main Content -->
+  <main>
+    <!--Begin: Header -->
+    <div id="header">
+      <div class="header-user">
+        <div class="user-avatar">
+          <i class="fa-solid fa-circle-user"></i>
+        </div>
+        <div class="user-name">
+          <h3 class="my-0">Trần Quang Hiếu</h3>
+        </div>
+        <div class="user-streak">
+          <img src="../public/img/list-team-goal/slider2.png" alt="" class="icon-streak">
+          <div class="number-streak">
+            <span>30</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="header-time">
+        <h4 class="time my-0">
+          9:41
+        </h4>
+      </div>
+    </div>
+    <!--End: Header -->
+    
+    <!-- Begin: Button List -->
+    <div id="buttons">
+      <div class=" button-list">
+        <div class="create-btn">
+          <button data-bs-toggle="modal" 
+          data-bs-target="#reg-modal">
+            <i class="fa-solid fa-circle-plus"></i>
+            <span>Create</span>
+          </button>
+        </div> 
+
+        <div class="search-btn">
+          <input  type="email" placeholder="Seach your task name" required="" name="" id="searchSubject" class="email">
+          <i class="fa-solid fa-magnifying-glass"></i>
+        </div>
+
+        <ul class="button-list-second">
+          <li onclick=openLayoutDelete()>
+            <i class="fa-solid fa-trash-can"></i>
+            <span>Delete</span>
+          </li>
+          <li data-bs-toggle="modal" 
+            data-bs-target="#modal-filter">
+            <i class="fa-solid fa-filter"></i>
+            <span>Filter</span>
+          </li>
+          <li data-bs-toggle="modal" 
+          data-bs-target="#modal-sort">
+            <i class="fa-solid fa-sort"></i>
+            <span>Sort</span>
+          </li>
+        </ul>
+      </div>
+    </div>
+
+
+    <!-- MODAL CREATE Subject itself -->
+   <!-- fade: hiệu ứng chuyển đổi mở dần khi modal xuất hiện hoặc biến mất -->
+  <div class="modal fade" id="reg-modal" 
+    tabindex="-1" 
+    aria-labelledby="modal-title" 
+    aria-hidden="true"
+    >
+    <!-- modal-dialog-centered: modal sẽ nằm giữa khung hình, còn mặc định là nằm phía trên -->
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="modal-title">Create a task</h5>
+            <!-- dismiss: Khi click vào button close thì sẽ đóng modal -->
+            <button type="button" class="btn-close" 
+              data-bs-dismiss="modal" 
+              aria-label="Close">
+              </button>
+          </div>
+          <form id="createTaskForm">
+  <div class="modal-body">
+    <label for="modal-task-name" class="form-label">Task name</label>
+    <input
+      type="text"
+      class="form-control mb-3"
+      id="modal-task-name"
+      required
+      placeholder="Do assignment"
+    />
+
+    <label for="modal-task-des" class="form-label">Description</label>
+    <input
+      type="text"
+      class="form-control mb-3"
+      id="modal-task-des"
+      placeholder="Do it on Sakai"
+    />
+
+    <label for="modal-task-time" class="form-label">Start and End Time</label>
+    <input
+      type="text"
+      name="datetimes"
+      class="form-control mb-3"
+      id="modal-task-time"
+      placeholder="Select date & time"
+      style="width: 100%; height: 40px;"
+    />
+
+    <!-- Optional checkboxes, etc. -->
+  </div>
+  <div class="modal-footer">
+    <button
+      type="button"
+      class="btn btn-secondary"
+      data-bs-dismiss="modal"
+    >
+      Cancel
+    </button>
+    <button type="submit" class="btn btn-primary">
+      Create
+    </button>
+  </div>
+          </form>
+
+          
+        </div>
+      </div>
+  </div>
+
+
+
+  <!-- MODAL FILTER task itself -->
+   <!-- fade: hiệu ứng chuyển đổi mở dần khi modal xuất hiện hoặc biến mất -->
+    <div class="modal fade" id="modal-filter" 
+    tabindex="-1" 
+    aria-labelledby="modal-title" 
+    aria-hidden="true"
+    >
+    <!-- modal-dialog-centered: modal sẽ nằm giữa khung hình, còn mặc định là nằm phía trên -->
+      <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title" id="modal-title">Filter for: All Available tasks</h5>
+            <!-- dismiss: Khi click vào button close thì sẽ đóng modal -->
+            <button type="button" class="btn-close" 
+              data-bs-dismiss="modal" 
+              aria-label="Close">
+              </button>
+          </div>
+          <!-- <form action=""> -->
+            <div class="modal-body">
+              <!-- Begin: form check status of task-->
+              <div class="form-check-status-of-task">
+                <div class="form-check-title">
+                  <img src="../public/img/list-team-goal/slider2.png" alt="streak" class="icon-streak">
+                  <h6 class="">Status of task</h6>
+                </div>
+                <div class="container p-4">
+                  <div class="row row-cols-2">
+                    <div class="col">
+                        <div class="form-check">
+                        <input class="form-check-input" type="checkbox" value="" id="in-progress">
+                        <label class="form-check-label" for="in-progress">
+                          In-progress
+                        </label>
+                      </div>
+                    </div>
+
+                    <div class="col">
+                      <div class="form-check">
+                        <input class="form-check-input" type="checkbox" value="" id="overdue">
+                        <label class="form-check-label" for="overdue">
+                          Overdue
+                        </label>
+                      </div>
+                    </div>
+
+                    <div class="col">
+                      <div class="form-check">
+                        <input class="form-check-input" type="checkbox" value="" id="upcoming">
+                        <label class="form-check-label" for="upcoming">
+                          Upcoming
+                        </label>
+                      </div>
+                    </div>
+
+                  </div>
+                </div>
+              </div>
+              <!-- End: form check status of task-->
+              
+              <!-- Begin: form check time deadline -->
+              <div class="form-check-time-deadline">
+                <div class="form-check-title">
+                  <img src="../public/img/filter-team/watch.png" alt="streak" class="icon-streak">
+                  <h6 class="">Deadline of task</h6>
+                </div>
+                <div class="container p-4">
+                  <div class="row row-cols-2">
+                    <div class="col">
+                      <div class="form-check">
+                        <input class="form-check-input" type="checkbox" value="" id="low-time">
+                        <label class="form-check-label" for="low-time">
+                          In past
+                        </label>
+                      </div>
+                    </div>
+
+                    <div class="col">
+                      <div class="form-check">
+                        <input class="form-check-input" type="checkbox" value="" id="medium-time">
+                        <label class="form-check-label" for="medium-time">
+                          Today
+                        </label>
+                      </div>
+                    </div>
+
+                    <div class="col">
+                        <div class="form-check">
+                        <input class="form-check-input" type="checkbox" value="" id="high-time">
+                        <label class="form-check-label" for="high-time">
+                          Nex week
+                        </label>
+                      </div>
+                    </div>
+
+                    <div class="col">
+                        <div class="form-check">
+                        <input class="form-check-input" type="checkbox" value="" id="extreme-time">
+                        <label class="form-check-label" for="extreme-time">
+                          Next month
+                        </label>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <!-- End: form check time deadline -->
+
+              <!-- Begin: form check additional options -->
+              <div class="form-check-addtional-option">
+                <div class="form-check-title">
+                  <img src="../public/img/filter-team/team-spirit.png" alt="streak" class="icon-streak">
+                  <h6 class="">Addtional Options</h6>
+                </div>
+                <div class="container p-4">
+                  <div class="row row-cols-2">
+                    <div class="col">
+                        <div class="form-check">
+                        <input class="form-check-input" type="checkbox" value="" id="check-high-priority">
+                        <label class="form-check-label" for="check-high-priority">
+                          High Prioirty
+                        </label>
+                      </div>
+                    </div>
+
+                    <div class="col">
+                      <div class="form-check">
+                        <input class="form-check-input" type="checkbox" value="" id="check-reminder">
+                        <label class="form-check-label" for="check-reminder">
+                          Set Reminder
+                        </label>
+                      </div>
+                    </div>
+
+                    
+                  </div>
+                </div>
+              </div>
+              <!-- End: form check additional options -->
+              
+              
+            </div>
+            <div class="modal-footer">
+              <button onclick=uncheckAllItemModalFilter() type="button" class="btn btn-secondary">Remove</button>
+              <button type="submit" class="btn btn-primary">Apply filters</button>
+            </div>
+          <!-- </form> -->
+          
+        </div>
+      </div>
+    </div>
+
+
+  <!-- MODAL SORT -->
+  <div class="modal fade" id="modal-sort" 
+  tabindex="-1" 
+  aria-labelledby="modal-title" 
+  aria-hidden="true"
+  >
+  <!-- modal-dialog-centered: modal sẽ nằm giữa khung hình, còn mặc định là nằm phía trên -->
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="modal-title">Sort for: All Available tasks</h5>
+          <!-- dismiss: Khi click vào button close thì sẽ đóng modal -->
+          <button type="button" class="btn-close" 
+            data-bs-dismiss="modal" 
+            aria-label="Close">
+            </button>
+        </div>
+        <!-- <form action=""> -->
+          <div class="modal-body">
+            <!-- Begin: form check criteria of sort -->
+            <div class="form-check-criteria-sort">
+              <div class="form-check-title">
+                <img src="../public/img/list-team-goal/slider2.png" alt="streak" class="icon-streak">
+                <h6 class="">Criteria of sort</h6>
+              </div>
+              <div class="container p-4">
+                <div class="row row-cols-2">
+                  <div class="col">
+                      <div class="form-check">
+                      <input class="form-check-input" type="radio" name="criteria-sort" value="" id="name">
+                      <label class="form-check-label" for="name">
+                        Name task
+                      </label>
+                    </div>
+                  </div>
+
+                  <div class="col">
+                      <div class="form-check">
+                        <input class="form-check-input" type="radio" name="criteria-sort" value="" id="deadline">
+                        <label class="form-check-label" for="deadline">
+                          Deadline of task
+                        </label>
+                    </div>
+                  </div>
+
+                </div>
+              </div>
+            </div>
+            <!-- End: form check criteria of sort -->
+            
+            <!-- Begin: form check type sort-->
+            <div class="form-check-type-sort">
+              <div class="form-check-title">
+                <img src="../public/img/list-team-goal/slider2.png" alt="streak" class="icon-streak">
+                <h6 class="">Type of sort</h6>
+              </div>
+              <div class="container p-4">
+                <div class="row row-cols-2">
+                  <div class="col">
+                    <div class="form-check">
+                      <input class="form-check-input" type="radio" name="type-sort" value="" id="ascending">
+                      <label class="form-check-label" for="ascending">
+                        Ascending
+                      </label>
+                    </div>
+                  </div>
+
+                  <div class="col">
+                    <div class="form-check">
+                      <input class="form-check-input" type="radio" name="type-sort" value="" id="descending">
+                      <label class="form-check-label" for="descending">
+                        Descending
+                      </label>
+                    </div>
+                  </div>
+
+                </div>
+              </div>
+            </div>
+            <!-- End: form check type -->
+
+          </div>
+          <div class="modal-footer">
+            <button onclick=uncheckAllItemModalSort() type="button" class="btn btn-secondary">Remove</button>
+            <button type="submit" class="btn btn-primary">Apply sort</button>
+          </div>
+        <!-- </form> -->
+        
+      </div>
+    </div>
+  </div>
+
+
+    <!-- LAYOUT DELETE MANY ITEMS -->
+     <div class="layout-delete-many-items">
+      <div class="container-fluid d-flex mt-4">
+          <h5 class="number-item-selected m-0">
+            <span class="number ms-4">0</span>
+            <span class="des">Item selected</span>
+          </h5>
+          
+          <div class="action-list">
+            <div class="select-all">
+              <div class="form-check mb-0">
+                <input class="form-check-input" type="checkbox" value="" id="select-all">
+                <label class="form-check-label" for="select-all">
+                  Select All
+                </label>
+              </div>
+            </div>
+
+            <div class="delete-items">
+              <!-- <i class="fa-solid fa-trash-can"></i>   -->
+              <span>Delete</span>          
+            </div>
+
+            <div class="close-layout" onclick=closeLayoutDelete()>
+              <i class="fa-regular fa-circle-xmark"></i>
+              <span>Close</span> 
+            </div>
+          </div>
+      </div>
+     </div>
+    <!-- End: Button List -->
+
+    <!-- Begin: Task List -->
+
+    <div id="task">
+      <h5 class="heading">
+        <span>Tasks of subject</span>
+        <span class="subject-name">CDIO</span>
+      </h4>
+
+      <div class="list-task">
+          <!-- Accordion -->
+          <div class="accordion" id="accordionPanelsStayOpenExample">
+            <!-- Available Task -->
+            <div class="accordion-item list-available-task">
+              <!-- Accordion-HEADER -->
+              <h2 class="accordion-header">
+                <button class="accordion-button fs-5 text-primary fw-medium" type="button" data-bs-toggle="collapse" data-bs-target="#panelsStayOpen-collapseOne" aria-expanded="true" aria-controls="panelsStayOpen-collapseOne">
+                  Available Tasks
+                </button>
+              </h2>
+              <!-- Accordion-BODY -->
+              <div id="panelsStayOpen-collapseOne" class="accordion-collapse collapse show">
+                <div class="accordion-body">
+                  <div class="item-available-task container text-center p-0">
+                    <div class="row w-100 gx-4 align-items-center justify-content-center my-3">
+      
+                         <div class="col check-task">
+                            <!-- Button check complete task -->
+                            <input class="checkbox-complete-task" type="checkbox" value="" data-bs-toggle="modal" data-bs-target="#modal-confirmation-check-task">
+      
+                            <!-- Task item -->
+                            <div class="task text-start">
+                                <span class="task-title fw-medium">Do assignment on Sakai</span>
+                                <span class="task-desc fw-light text-secondary">Subject PPL 100 PHI R</span>
+                                <!-- Addition options of task -->
+                                 <div class="additional-option d-flex align-items-center justify-content-between">
+                                  <div class="option-high-priority mt-1" style="font-size: 14px;">
+                                    <i class="fa-solid fa-flag text-primary"></i>
+                                    <span class="ms-1">High Priority</span>
+                                  </div>
+
+                                  <div class="option-reminder mt-1" style="font-size: 14px;">
+                                    <i class="fa-solid fa-clock text-success"></i>
+                                    <span class="ms-1">13:00 PM</span>
+                                  </div>
+                                 </div>
+                            </div>
+                         </div>
+
+      
+                        <!-- Time -->
+                        <div class="col time-of-task">
+                            <span class="status-of-task fw-medium" data-status="Overdue">Overdue</span>
+                            <div class="due-time fw-light">
+                                <span class="open-time text-secondary">17/2/2025</span>
+                                <hr>
+                                <span class="end-time text-secondary">28/2/2025</span>
+                            </div>
+                        </div>
+                
+                        <!-- Action -->
+                        <div class="action-list col text-end d-flex justify-content-end align-items-center text-primary">
+                            <div class="row g-4">
+                                <div class="col fs-5 action-edit" 
+                                data-bs-toggle="modal" 
+                                data-bs-target="#modal-confirmation-edit">
+                                    <i class="fa-solid fa-pen-to-square"></i>
+                                </div>
+                                <div class="col fs-5 action-delete"
+                                data-bs-toggle="modal" 
+                                data-bs-target="#modal-confirmation-delete">
+                                    <i class="fa-solid fa-trash-can"></i>
+                                </div>
+                                <div class="col fs-5 action-rank" onclick="window.location.href='../views/ranking-user.html'">
+                                  <i class="fa-solid fa-ranking-star"></i>
+                                </div>
+                                <div class="col fs-5 action-comment" 
+                                data-bs-toggle="modal" 
+                                data-bs-target="#modal-comment-task">
+                                    <i class="fa-solid fa-message"></i> 
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                  </div>       
+                  
+                  <div class="item-available-task container text-center p-0">
+                    <div class="row w-100 gx-4 align-items-center justify-content-center my-3">
+      
+                         <div class="col check-task">
+                            <!-- Button check complete task -->
+                            <input class="checkbox-complete-task" type="checkbox" value="">
+      
+                            <!-- Task item -->
+                            <div class="task text-start">
+                                <span class="task-title fw-medium">Do assignment on Sakai</span>
+                                <span class="task-desc fw-light text-secondary">Subject PPL 100 PHI R</span>
+                            </div>
+                         </div>
+
+      
+                        <!-- Time -->
+                        <div class="col time-of-task">
+                            <span class="status-of-task fw-medium" data-status="In progress">In progress</span>
+                            <div class="due-time fw-light">
+                                <span class="open-time text-secondary">17/2/2025</span>
+                                <hr>
+                                <span class="end-time text-secondary">28/2/2025</span>
+                            </div>
+                        </div>
+                
+                        <!-- Action -->
+                        <div class="action-list col text-end d-flex justify-content-end align-items-center text-primary">
+                            <div class="row g-4">
+                                <div class="col fs-5 action-edit">
+                                    <i class="fa-solid fa-pen-to-square"></i>
+                                </div>
+                                <div class="col fs-5 action-delete">
+                                    <i class="fa-solid fa-trash-can"></i>
+                                </div>
+                                <div class="col fs-5 action-rank">
+                                    <i class="fa-solid fa-ranking-star"></i>
+                                </div>
+                                <div class="col fs-5 action-comment">
+                                    <i class="fa-solid fa-message"></i> 
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                  </div>   
+                  
+                  <div class="item-available-task container text-center p-0">
+                    <div class="row w-100 gx-4 align-items-center justify-content-center my-3">
+      
+                         <div class="col check-task">
+                            <!-- Button check complete task -->
+                            <input class="checkbox-complete-task" type="checkbox" value="">
+      
+                            <!-- Task item -->
+                            <div class="task text-start">
+                                <span class="task-title fw-medium">Do assignment on Sakai</span>
+                                <span class="task-desc fw-light text-secondary">Subject PPL 100 PHI R</span>
+                            </div>
+                         </div>
+
+      
+                        <!-- Time -->
+                        <div class="col time-of-task">
+                            <span class="status-of-task fw-medium" data-status="Upcoming">Upcoming</span>
+                            <div class="due-time fw-light">
+                                <span class="open-time text-secondary">17/2/2025</span>
+                                <hr>
+                                <span class="end-time text-secondary">28/2/2025</span>
+                            </div>
+                        </div>
+                
+                        <!-- Action -->
+                        <div class="action-list col text-end d-flex justify-content-end align-items-center text-primary">
+                            <div class="row g-4">
+                                <div class="col fs-5 action-edit">
+                                    <i class="fa-solid fa-pen-to-square"></i>
+                                </div>
+                                <div class="col fs-5 action-delete">
+                                    <i class="fa-solid fa-trash-can"></i>
+                                </div>
+                                <div class="col fs-5 action-rank">
+                                    <i class="fa-solid fa-ranking-star"></i>
+                                </div>
+                                <div class="col fs-5 action-comment">
+                                    <i class="fa-solid fa-message"></i> 
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                  </div> 
+                </div>
+              </div>
+            </div>
+
+            <!-- Submitted Task -->
+            <div class="accordion-item list-submitted-task">
+              <h2 class="accordion-header">
+                <button class="accordion-button collapsed fs-5 text-primary fw-medium" type="button" data-bs-toggle="collapse" data-bs-target="#panelsStayOpen-collapseTwo" aria-expanded="false" aria-controls="panelsStayOpen-collapseTwo">
+                  Submitted Tasks
+                </button>
+              </h2>
+              <div id="panelsStayOpen-collapseTwo" class="accordion-collapse collapse">
+                <div class="accordion-body">
+                  <div class="item-submitted-task container text-center p-0">
+                    <div class="row w-100 gx-4 align-items-center justify-content-center my-3">
+      
+                         <div class="col check-task">
+                            <!-- Task item -->
+                            <div class="task text-start">
+                                <span class="task-title fw-medium">Do assignment on Sakai</span>
+                                <span class="task-desc fw-light text-secondary">Subject PPL 100 PHI R</span>
+                            </div>
+                         </div>
+
+      
+                        <!-- Time -->
+                        <div class="col time-of-task d-flex flex-column">
+                            <span class="status-of-task fw-medium" data-status="Completed">Completed</span>
+                            <span class="submitted-time fw-light text-secondary">
+                               17/2/2025 3:00 PM
+                            </span>
+                        </div>
+                
+                        <!-- Action -->
+                        <div class="action-list col text-end d-flex justify-content-end align-items-center text-primary">
+                            <div class="row g-4">
+                                <div class="col fs-5 action-delete">
+                                    <i class="fa-solid fa-trash-can"></i>
+                                </div>
+                                <div class="col fs-5 action-rank">
+                                    <i class="fa-solid fa-ranking-star"></i>
+                                </div>
+                                <div class="col fs-5 action-comment">
+                                    <i class="fa-solid fa-message"></i> 
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                  </div>  
+                </div>
+              </div>
+            </div>
+            
+          </div>
+        
+      </div>
+
+      <ol id="SubjectList" class="olcards">
+
+
+      </ol>
+    </div>
+    <!-- End: Task List -->
+
+
+    <!-- MODAL CONFIRMATION CHECK COMPLETE TASK -->
+    <div class="modal fade" id="modal-confirmation-check-task" 
+    tabindex="-1" 
+    aria-labelledby="modal-title" 
+    aria-hidden="true"
+    >
+    <!-- modal-dialog-centered: modal sẽ nằm giữa khung hình, còn mặc định là nằm phía trên -->
+      <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+        <div class="modal-content">
+          <div class="modal-header">
+            <i class="fa-solid fa-circle-check type-confirmation-img"></i>
+            <h5 class="modal-title ms-2 fw-bold" id="modal-title">
+              Complete
+              <span class="type-of-object">Task</span>
+            </h5>
+            <!-- dismiss: Khi click vào button close thì sẽ đóng modal -->
+            <button type="button" class="btn-close" 
+              data-bs-dismiss="modal" 
+              aria-label="Close">
+              </button>
+          </div>
+          <!-- <form action=""> -->
+            <div class="modal-body">
+              <div class="question-confirmation d-flex align-items-center fs-5 fw-medium">
+                <span>Are you sure want to complete</span>
+                <span class="object-deleted-name fw-semibold my-0 mx-1">
+                  this task
+                </span>
+                <span>?</span>
+              </div>
+
+              <div class="warning mt-2">
+                <i class="fa-solid fa-triangle-exclamation"></i>
+                <span class="warning-content ms-1">
+                  By Completting this
+                  <span class="type-of-object">Task</span>
+                  ,
+                  <span class="waring-desc">the action cannot be undone.</span>
+                </span>
+              </div>
+              
+              
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">No, Cancel</button>
+              <button type="submit" class="btn btn-primary btn-yes" data-bs-toggle="modal" data-bs-target="#modal-success-action" onclick="showModal('Your Task Completed!')">
+                Yes,
+                <span class="type-of-action">Complete</span>
+              </button>
+            </div>
+          <!-- </form> -->
+          
+        </div>
+      </div>
+    </div>
+
+    
+    <!-- MODAL STATUS ACTION -->
+    <div id="modal-status-action-container"></div>
+
+    <!-- MODAL COMMENT TASK -->
+    <div class="modal fade" id="modal-comment-task" 
+    tabindex="-1" 
+    aria-labelledby="modal-title" 
+    aria-hidden="true"
+    >
+    <!-- modal-dialog-centered: modal sẽ nằm giữa khung hình, còn mặc định là nằm phía trên -->
+      <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+        <div class="modal-content">
+          <div class="modal-header">
+          
+            <h5 class="modal-title ms-2 d-flex align-items-start justify-content-end flex-column" id="modal-title">
+              <span class="task-title">Do assignment on Sakai</span>
+              <span class="task-desc fw-light text-secondary fs-6">Subject PPL PHI 100 R</span>
+            </h5>
+            <!-- dismiss: Khi click vào button close thì sẽ đóng modal -->
+            <button type="button" class="btn-close" 
+              data-bs-dismiss="modal" 
+              aria-label="Close">
+              </button>
+          </div>
+          <!-- <form action=""> -->
+            <div class="modal-body">
+              <div class="comment-task">
+                <!-- Accordion -->
+                <div class="accordion" id="accordion-comment-task">
+                  <!-- Available Task -->
+                  <div class="accordion-item list-available-task">
+                    <!-- Accordion-HEADER -->
+                    <h2 class="accordion-header">
+                      <button class="accordion-button fs-5 text-primary fw-medium" type="button" data-bs-toggle="collapse" data-bs-target="#accordion-body-comment-task" aria-expanded="true" aria-controls="panelsStayOpen-collapseOne">
+                        Comment
+                      </button>
+                    </h2>
+                    <!-- Accordion-BODY -->
+                    <div id="accordion-body-comment-task" class="accordion-collapse collapse show">
+                      <div class="accordion-body list-comment-task">
+                        <div class="item-comment-task container p-0 border-0">
+                          <div class="comment-content w-100 d-flex flex-column align-items-start justify-content-center my-3">
+                            <div class="comment-header d-flex align-items-center justify-content-center py-0">
+                                <span class="letter-of-name" style="--letter-color: var(--success-color);">H</span>
+                                <span class="name-member fw-semibold">Trần Quang Hiếu</span>
+                                <span class="time-text fw-light text-secondary">9:00 A.M</span>
+                            </div>
+                              
+                            <div class="comment-body">
+                                <p class="mt-0 ms-5">hello mọi người</p>
+                            </div>
+                          </div>
+                        </div> 
+                        
+                        
+                        <div class="item-comment-task container p-0 border-0">
+                          <div class="comment-content w-100 d-flex flex-column align-items-start justify-content-center my-3">
+                            <div class="comment-header d-flex align-items-center justify-content-center py-0">
+                                <span class="letter-of-name" style="--letter-color: var(--blue-color);">H</span>
+                                <span class="name-member fw-semibold">Huỳnh Đức Huy</span>
+                                <span class="time-text fw-light text-secondary">9:05 A.M</span>
+                            </div>
+                              
+                            <div class="comment-body">
+                                <p class="mt-0 ms-5">Xin Chào các bạn!</p>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                
+              
+              
+              </div>
+
+            </div>
+            <div class="modal-footer">
+                <div class="comment-box">
+                  <textarea placeholder="Comment..."></textarea>
+                  <div class="comment-actions">
+                      <div class="icons">
+                          <i class="fa-solid fa-paperclip"></i>
+                          <i class="fa-solid fa-microphone"></i>
+                      </div>
+                      <div class="buttons">
+                          <button class="delete-comment-task btn btn-secondary">Delete</button>
+                          <button class="comment btn btn-primary ms-2">
+                            <i class="fa-solid fa-paper-plane"></i>
+                          </button>
+                      </div>
+                  </div>
+              </div>
+              <!-- <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">No, Cancel</button>
+              <button type="submit" class="btn btn-primary btn-yes" data-bs-toggle="modal" data-bs-target="#modal-success-action" onclick="showModal('Your Task Completed!')">
+                Yes,
+                <span class="type-of-action">Complete</span>
+              </button> -->
+            </div>
+          <!-- </form> -->
+          
+        </div>
+      </div>
+    </div>
+
+    <!-- MODAL CONFIRMATION DELETE -->
+    <div class="modal fade" id="modal-confirmation-delete" 
+    tabindex="-1" 
+    aria-labelledby="modal-title" 
+    aria-hidden="true"
+    >
+    <!-- modal-dialog-centered: modal sẽ nằm giữa khung hình, còn mặc định là nằm phía trên -->
+      <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+        <div class="modal-content">
+          <div class="modal-header">
+            <i class="fa-solid fa-trash-can type-confirmation-img"></i>
+            <h5 class="modal-title ms-2 fw-bold" id="modal-title">
+              Delete
+              <span class="type-of-object">Subject</span>
+            </h5>
+            <!-- dismiss: Khi click vào button close thì sẽ đóng modal -->
+            <button type="button" class="btn-close" 
+              data-bs-dismiss="modal" 
+              aria-label="Close">
+              </button>
+          </div>
+          <!-- <form action=""> -->
+            <div class="modal-body">
+              <div class="question-confirmation d-flex align-items-center fs-5 fw-medium">
+                <span>Are you sure want to delete</span>
+                <span class="object-deleted-name fw-semibold my-0 mx-1">
+                  CDIO
+                </span>
+                <span>?</span>
+              </div>
+
+              <div class="warning mt-2">
+                <i class="fa-solid fa-triangle-exclamation"></i>
+                <span class="warning-content ms-1">
+                  By Deleting this
+                  <span class="type-of-object">Subject</span>
+                  ,
+                  <span class="waring-desc">all the data about subject and task will also be deleted.</span>
+                </span>
+              </div>
+              
+              
+            </div>
+            <div class="modal-footer">
+              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">No, Cancel</button>
+              <button type="submit" class="btn btn-primary btn-yes">
+                Yes,
+                <span class="type-of-action">Delete</span>
+              </button>
+            </div>
+          <!-- </form> -->
+          
+        </div>
+      </div>
+    </div>
+
+     <!-- MODAL CONFIRMATION EDIT -->
+     <div class="modal fade" id="modal-confirmation-edit" 
+     tabindex="-1" 
+     aria-labelledby="modal-title" 
+     aria-hidden="true"
+     >
+     <!-- modal-dialog-centered: modal sẽ nằm giữa khung hình, còn mặc định là nằm phía trên -->
+       <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+         <div class="modal-content">
+           <div class="modal-header">
+             <i class="fa-solid fa-pen-to-square type-confirmation-img"></i>
+             <h5 class="modal-title ms-2 fw-bold" id="modal-title">
+               Edit
+               <span class="type-of-object">Subject</span>
+             </h5>
+             <!-- dismiss: Khi click vào button close thì sẽ đóng modal -->
+             <button type="button" class="btn-close" 
+               data-bs-dismiss="modal" 
+               aria-label="Close">
+               </button>
+           </div>
+           <!-- <form action=""> -->
+             <div class="modal-body">
+               <div class="question-confirmation d-flex align-items-center fs-5 fw-medium">
+                 <span>Are you sure want to edit</span>
+                 <span class="object-deleted-name fw-semibold my-0 mx-1">
+                   CDIO
+                 </span>
+                 <span>?</span>
+               </div>
+
+               <div class="warning mt-2">
+                 <i class="fa-solid fa-triangle-exclamation"></i>
+                 <span class="warning-content ms-1">
+                  Make sure your changes are correct before saving, as they may impact team collaboration.
+                 </span>
+               </div>
+               
+               
+             </div>
+             <div class="modal-footer">
+               <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">No, Cancel</button>
+               <button type="submit" class="btn btn-primary btn-yes">
+                 Yes,
+                 <span class="type-of-action">Edit</span>
+               </button>
+             </div>
+           <!-- </form> -->
+           
+         </div>
+       </div>
+     </div>
+    
+
+  </main>
+  <!--End: Main Content -->
+
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+
+  <script src="../js/component.js"></script>
+  <script type="module" src="../public/activity/time.js"></script>
+  <script type="module" src="../public/activity/task.js"></script>
+
+  <!-- layout delete -->
+   <script src="../js/toggeLayoutDelete.js"></script>
+
+   <!-- Date time range piker -->
+   <script>
+    $(function() {
+      $('input[name="datetimes"]').daterangepicker({
+        timePicker: true,
+        startDate: moment().startOf('hour'),
+        endDate: moment().startOf('hour').add(32, 'hour'),
+        locale: {
+          format: 'DD/MM/YYYY hh:mm A'
+        }
+      });
+    });
+    </script>
+
+
+    <!-- Delete comment task -->
+    <script>
+        document.querySelector('.delete-comment-task').addEventListener('click', function() {
+          document.querySelector('.comment-box textarea').value = ''; // Xóa nội dung
+        });
+
+    </script>
+
+
+
+    <!-- Modal status of action -->
+    <script src="../js/show-modal-action-success.js"></script>
+
+    <!-- Uncheck all item in modal -->
+  <script src="../js/uncheck-item-modal.js"></script>
+
+
+</body>
+</html>

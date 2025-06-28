@@ -1,0 +1,66 @@
+/* MODAL FILTER TEAM */
+  
+#modal-sort .modal-body .form-check-title {
+    display: flex;
+    justify-content: start;
+    align-items: center;
+
+    h6 {
+      margin-bottom: 0;
+      margin-left: 12px;
+    }
+  }
+  #modal-sort .icon-streak {
+    width: 30px;
+  }
+
+  #modal-sort .modal-body .form-check {
+    display: flex;
+    
+    align-items: center;
+
+    .form-check-input {
+      text-align: center;
+      height: 24px;
+      width: 24px;
+      margin-right: 12px;
+      border-color: #ccc;
+    }
+
+    .form-check-label {
+      display: flex;
+      font-weight: 100;
+      background-color: rgba(217, 217, 217, 0.4);
+      border-radius: 10px;
+      width: 90%;
+      height: 32px;
+      justify-content: center;
+      align-items: center;
+    }
+
+  }
+
+  #modal-sort .modal-body .form-check:hover {
+    .form-check-input {
+      cursor: pointer;
+      border-color: var(--primary-color);
+      border-width: 2px;
+    }
+
+    .form-check-label {
+      background-color: var(--primary-color);
+      color:#fff;
+      cursor: pointer;
+    }
+  }
+
+  #modal-sort .modal-body .form-check-input:checked + .form-check-label {
+    background-color: var(--primary-color);
+    color: #fff;
+    cursor: pointer;
+  }
+
+
+  .form-check-input:checked {
+    border: none
+  }

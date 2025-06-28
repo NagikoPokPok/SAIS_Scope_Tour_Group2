@@ -1,0 +1,228 @@
+/* Reset CSS */
+* {
+    padding: 0;
+    margin: 0;
+    box-sizing: border-box;
+    font-family: 'Baloo2';
+}
+
+html {
+    scroll-behavior: smooth;
+}
+
+:root {
+    --primary-color: #FF7B4D;
+    --secondary-color: #FFB54A;
+    --third-color: #FF7B4D;
+    --success-color: #4caf50;
+    --error-color: #f44336;
+    --background-color: #FFE1CC;
+}
+
+body {
+}
+
+.task-container {
+    width: 100%;
+    padding: 40px;
+}
+
+#rank-task{
+    margin-top: 20px;
+    background-color: #fff;
+    border-radius: 8px;
+    box-shadow: 0px 2px 6px rgba(0, 0, 0, 0.4);
+}
+
+.task-header {
+    margin-bottom: 5px;
+    margin-top: 10px;
+
+    .task-title {
+        font-size: 20px;
+    }
+}
+
+
+ 
+h3{
+    margin: 0;
+}
+
+.task-box p{
+    margin-bottom: 8px;
+}
+
+.task-box {
+    display: flex;
+    gap: 20px;
+    justify-content: center; /* Căn giữa theo chiều ngang */
+}
+
+
+.card {
+    width: fit-content ;
+    display: flex;
+    min-width: 310px;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 8px;
+    border-radius: 8px;
+    box-shadow: 0px 2px 0px rgba(0, 0, 0, 0.3);
+}
+
+.complete {
+    border: 1px solid #4CAF50;
+}
+
+.not-complete {
+    border: 1px solid #E53935;
+}
+
+.icon {
+    font-size: 16px;
+    padding: 8px;
+}
+
+
+.complete .icon {
+    color: #4CAF50;
+}
+
+.not-complete .icon {
+    color: #E53935;
+}
+
+.percentage {
+    font-size: 14px;
+    margin-top: 5px;
+}
+
+.complete .percentage {
+    color: #4CAF50;
+}
+
+.not-complete .percentage {
+    color: #E53935;
+}
+
+
+.three-highest-rank{
+    display: flex;
+    flex-direction:row ;
+    justify-content: center;
+    margin: 30px 200px;
+    height: 500px;
+    gap: 50px;
+}
+
+.first-rank {
+    order: 2;
+    max-height: 385px;
+    width: fit-content;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
+/* Avatar */
+.profile {
+    width: 120px;  /* Điều chỉnh kích thước */
+    height: 120px;
+    position: relative;
+    border-radius: 50%;
+    padding: 2px; /* Khoảng cách giữa ảnh & viền */
+    background: linear-gradient(45deg, #a775f2, #f06292, #ff9800);
+}
+
+.profile img {
+    width: 100%;
+    height: 100%;
+    border-radius: 50%;
+    object-fit: cover;
+    display: block;
+    border: 5px solid transparent; /* Để không bị đè lên gradient */
+    background-clip: padding-box;
+}
+
+
+/* Số thứ hạng */
+.rank {
+    position: absolute;
+    bottom: -8px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: linear-gradient(45deg, #a775f2, #f06292); /* Gradient từ tím sang hồng */
+    color: white;
+    padding: 4px 10px;
+    border-radius: 40%;
+    font-size: 14px;
+    font-weight: bold;
+
+}
+
+
+/* Tên */
+.name-tag {
+    background-color: #ff8a5c;
+    color: white;
+    font-weight: bold;
+    padding: 8px 16px;
+    border-radius: 20px;
+    display: inline-block;
+    margin-top: 10px;
+}
+
+/* Khung thành tích */
+.achievement {
+    background-color: #ffe8e0;
+    padding: 20px;
+    margin-top: 15px;
+    border-radius: 20px;
+    height: 200px;
+    width: 200px;
+    box-shadow: 2px 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.achievement img {
+    width: 100px;
+    margin-bottom: 10px;
+}
+
+
+.second-rank {
+    margin-top: 57,5px;
+    order: 1;
+    max-height: 100%;
+    width: fit-content;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+
+.third-rank {
+    order: 3;
+    max-height: 100%;
+    width: fit-content;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    justify-content: end; 
+    align-items: center;
+}
+
+
+.table{
+    text-align: center;
+    width: 100%;
+    margin: auto;
+    font-size: 18px;
+}
+.table tr{
+     border: 0.3px solid  var(--gray-color);
+}

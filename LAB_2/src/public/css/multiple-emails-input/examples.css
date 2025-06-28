@@ -1,0 +1,11 @@
+.examples {
+  display: flex;
+  width: 80%;
+  flex-direction: column;
+  margin: 2rem;
+}
+
+#sample1 {
+  display: block;
+}
+

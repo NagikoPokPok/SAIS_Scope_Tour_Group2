@@ -1,0 +1,235 @@
+/* Reset CSS */
+* {
+    padding: 0;
+    margin: 0;
+    box-sizing: border-box;
+    font-family: 'Baloo2';
+}
+
+html {
+    /* width: 100%; */
+}
+
+:root {
+    --primary-color: #FF7B4D;
+    --secondary-color: #FFB54A;
+    --third-color: #FF7B4D;
+    --success-color: #4caf50;
+    --error-color: #f44336;
+    --background-color: #FFE1CC;
+}
+body{
+    background-color: #fff;
+    display: flex;
+    justify-content: center; /* Căn giữa ngang */
+    align-items: center; /* Căn giữa dọc */
+     /* Chiều cao toàn màn hình */
+    margin: 0;
+    height: 100vh;
+    width: 100vw;
+}
+
+.error {
+    color: red;
+    font-size: 14px;
+    display: none;  /* Hiển thị lỗi theo dòng mới */
+    margin-top: 4px; /* Khoảng cách từ ô nhập */
+    margin-bottom: 8px; /* Để không bị dính vào ô tiếp theo */
+    width: 100%;
+    text-align: left;
+}
+
+
+
+.first-login{
+    display: flex;
+    
+    align-items: center;
+    height: 80%;
+    width: 70%;
+    margin: auto;
+    border-radius: 32px; 
+    padding: 0px; 
+    background-color: white; 
+    box-shadow: 0 0 32px rgba(245,102,1, 0.3); 
+    position: relative;
+    overflow: hidden;
+    border-style: none;
+}
+
+
+.first-login .img-login2 {
+    position: relative; 
+    width: 100%;
+    height: 100%;
+    z-index: 0;
+
+    border-radius: 5px;  
+    flex: 2;
+    justify-content: center;
+    height: 120%;
+    margin-left: -8%;
+    
+    
+}
+
+.img-login2 .image-descr2{
+    height: 100%;
+    width: calc(100% - 32px);
+    object-fit: cover;
+    
+}
+
+
+
+.first-login .login-container{
+    position: relative;
+    border: #000;
+    height: auto; 
+    flex: 1;
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding-right: 24px;
+}
+
+.title{
+    text-align: center;
+    color: #000;
+    font-weight: 500;
+    width: 300px;
+}
+
+.form-full-name{
+    display: flex;
+    justify-content: center;
+    width: calc(100% - 32px);
+}
+
+.form-full-name .full-name{
+    width: calc(100% - 50px); 
+    padding: 10px;
+    border: 0.7px solid #ccc;
+    border-radius: 10px; 
+    font-size: 16px;
+    outline: none;
+    margin-top: 32px;
+    margin-bottom: 8px;
+    width: 100%;
+}
+
+.form-email{
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    width: calc(100% - 32px);
+}
+
+.form-email .email{
+    width: calc(100% - 50px); 
+    padding: 10px;
+    border: 0.7px solid #ccc;
+    border-radius: 10px; 
+    font-size: 16px;
+    outline: none;
+    margin-bottom: 8px;
+    width: 100%;
+}
+
+.form-password{
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    width: calc(100% - 32px);
+}
+
+.form-password .password{
+    width: 100%;
+    padding: 10px;
+    border: 0.7px solid #ccc; 
+    border-radius: 10px; 
+    font-size: 16px;
+    outline: none;
+    margin-bottom: 0px;
+    margin-bottom: 8px;
+}
+
+.form-password-confirm{
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    width: calc(100% - 32px);
+}
+
+.form-password-confirm .password-confirm{
+    width: 100%;
+    padding: 10px;
+    border: 0.7px solid #ccc; 
+    border-radius: 10px; 
+    font-size: 16px;
+    outline: none;
+    margin-bottom: 16px;
+    
+}
+
+.forgot-password-form{
+    width: auto;
+    text-decoration: none;
+    color: #F56601;
+    margin-top: 8px;
+    width: 100%;    
+    text-align: left;
+}
+
+.forgot-password-form .forgot-password{
+    text-decoration: none;
+    color: #F56601;
+    font-size: 16px;
+    margin-left: 25px;
+}
+
+.btn-sign-up{
+    display: block;
+    width: calc(100% - 32px);
+    padding: 10px;
+    border: none;
+    border-radius: 10px; 
+    font-size: 18px;
+    color: #fff;
+    outline: none;
+    margin-bottom: 8px;
+    background-color: #F56601;
+    margin-top: 16px;
+}
+.btn-login:hover{
+    opacity: 0.7;
+}
+
+.sign-up{
+    display: flex;
+    justify-content: center;
+    padding: 0;
+    
+}
+
+.sign-up .label{
+    font-size: 14px;
+    color: #ccc;
+}
+
+.sign-up .link-sign-up{
+    margin-left: 5px;
+    text-decoration: none;
+    color: #F56601;
+    font-size: 14px;
+}
+
+
+
+
+
+label span {
+    display: inline-block;
+    margin-left: 2px;
+}

@@ -1,0 +1,134 @@
+@font-face {
+    font-family: 'GochiHand';
+    src: url('../font-text/GochiHand-Regular.ttf') format('truetype');
+}
+
+* {
+    padding: 0;
+    margin: 0;
+    box-sizing: border-box;
+    font-family: 'Baloo2';
+}
+
+
+body {
+    font-family: 'Baloo2';
+    display: flex;
+    background-color: #f0f2f5;
+    height: 100vh;
+    width: 100vw;
+    justify-content: flex-end; /* Căn phải */
+    align-items: flex-start; /* Căn dưới */
+    padding-right: 100px; /* Tạo khoảng cách với lề phải */
+    background-color: #ccc;
+}
+:root {
+    --primary-color: #FF7B4D;
+    --secondary-color: #FFB54A;
+    --third-color: #FF7B4D;
+    --success-color: #4caf50;
+    --error-color: #f44336;
+    --background-color: #FFE1CC;
+}
+
+.header-list-chat{
+    margin-left: 12px;
+    padding-bottom: 6px;
+    padding-top: 6px;
+}
+
+.list-group-chat{
+    height: calc(100vh - 150px);
+    width: 350px;
+    display: flex ;
+    flex-direction: column;
+    background-color: #fff;
+    box-shadow: 0 0 5px rgba(0, 0, 0, 0.3);
+    border-radius: 8px;
+}
+
+.list-group-chat .group-container{
+    display: flex;
+    flex-direction: row;
+    padding: 8px;
+    background-color: #fff;
+    margin-left: 10px;
+    margin-right: 10px;
+    border-radius: 8px;
+    margin-bottom: 4px  ;
+}
+
+.list-group-chat .group-container:hover{
+    background-color: #ccc;
+}
+
+.list-group-chat .group-container .avatar {
+    height: 56px;
+    width: 56px;
+    border-radius: 50%;
+    object-fit: cover;
+    display: flex;
+    align-items: center;
+}
+
+.list-group-chat .group-container .name{
+    margin-left: 16px;
+    font-size: 18px;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+}
+
+
+.list-group-chat .group-container .avatar-group{
+    margin: auto 0px;
+}
+
+.list-group-chat .group-container .user-streak {
+    display: flex;
+    flex-direction: row;
+    border-radius: 10px;
+    background-color: var(--secondary-color);
+    padding: 4px;
+    margin-left: auto;
+    margin-right: 10px;
+    height: fit-content;
+    align-self: center;
+  }
+  
+  .list-group-chat .group-container .user-streak .icon-streak {
+    width: 15px;
+    height: 25px;
+  }
+  
+  .list-group-chat .group-container .user-streak .number-streak{
+    margin-left: 8px;
+    font-size: 18px;
+    font-weight: 500;
+  }
+
+  .search-box {
+    display: flex;
+    align-items: center;
+    background-color: #f0f2f5;
+    border-radius: 20px;
+    padding: 8px 12px;
+    width: 330px;
+    align-self: center;
+    margin-bottom: 12px;
+}
+
+.search-box input {
+    border: none;
+    background: transparent;
+    outline: none;
+    flex: 1;
+    font-size: 14px;
+    color: #65676b;
+}
+
+.search-box .icon {
+    color: #65676b;
+    font-size: 16px;
+    margin-right: 6px;
+}
