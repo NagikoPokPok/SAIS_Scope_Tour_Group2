@@ -18,6 +18,7 @@
   },
   "homepage": "https://github.com/NagikoPokPok/Scope_Tour_Group2#readme",
   "dependencies": {
+    "@faker-js/faker": "^9.8.0",
     "cors": "^2.8.5",
     "dotenv": "^17.0.0",
     "express": "^5.1.0",

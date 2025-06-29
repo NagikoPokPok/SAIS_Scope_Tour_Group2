@@ -436,37 +436,97 @@ const startDate = task.start_date ? DateUtils.formatDate(new Date(task.start_dat
   }
 },
 
-    renderAvailablePagination(totalCount) {
-      const totalPages = Math.ceil(totalCount / tasksPerPage);
-      const container = document.getElementById("pageNumbers");
-      const pageInfo = document.getElementById("pageInfo");
+    // renderAvailablePagination(totalCount) {
+    //   const totalPages = Math.ceil(totalCount / tasksPerPage);
+    //   const container = document.getElementById("pageNumbers");
+    //   const pageInfo = document.getElementById("pageInfo");
 
-      if (!container) return;
-      container.innerHTML = "";
+    //   if (!container) return;
+    //   container.innerHTML = "";
 
-      for (let i = 1; i <= totalPages; i++) {
-        const btn = document.createElement("button");
-        btn.textContent = i;
-        btn.className = `btn btn-sm ${i === currentPageAvailable ? 'btn-primary' : 'btn-outline-primary'}`;
-        btn.onclick = () => {
-          currentPageAvailable = i;
-          TaskManager.loadTasks();
-        };
-        container.appendChild(btn);
+    //   for (let i = 1; i <= totalPages; i++) {
+    //     const btn = document.createElement("button");
+    //     btn.textContent = i;
+    //     btn.className = `btn btn-sm ${i === currentPageAvailable ? 'btn-primary' : 'btn-outline-primary'}`;
+    //     btn.onclick = () => {
+    //       currentPageAvailable = i;
+    //       TaskManager.loadTasks();
+    //     };
+    //     container.appendChild(btn);
+    //   }
+
+    //   if (pageInfo) pageInfo.textContent = `${currentPageAvailable} / ${totalPages}`;
+
+    //   document.getElementById("firstPageBtn").onclick = () => TaskManager.loadTasks(1);
+    //   document.getElementById("prevPageBtn").onclick = () => {
+    //     if (currentPageAvailable > 1) TaskManager.loadTasks(currentPageAvailable - 1);
+    //   };
+    //   document.getElementById("nextPageBtn").onclick = () => {
+    //     if (currentPageAvailable < totalPages) TaskManager.loadTasks(currentPageAvailable + 1);
+    //   };
+    //   document.getElementById("lastPageBtn").onclick = () => TaskManager.loadTasks(totalPages);
+    // },
+    
+ renderAvailablePagination(totalCount) {
+  const totalPages = Math.ceil(totalCount / tasksPerPage);
+  const container = document.getElementById("pageNumbers");
+  container.innerHTML = "";
+
+  let pages = [];
+  if (totalPages <= 1) {
+    // Không cần phân trang
+    return;
+  }
+  if (currentPageAvailable === 1) {
+    pages = [1, totalPages > 1 ? 2 : null].filter(Boolean);
+  } else if (currentPageAvailable === totalPages) {
+    pages = [totalPages - 1, totalPages].filter(p => p > 0);
+  } else {
+    pages = [currentPageAvailable - 1, currentPageAvailable, currentPageAvailable + 1];
+  }
+
+  pages.forEach(page => {
+    const btn = document.createElement("button");
+    btn.textContent = page;
+    btn.className = `btn btn-sm ${page === currentPageAvailable ? 'btn-primary' : 'btn-outline-primary'}`;
+    btn.onclick = () => {
+      if (page !== currentPageAvailable) {
+        currentPageAvailable = page;
+        TaskManager.loadTasks(currentPageAvailable, currentPageSubmitted);
       }
+    };
+    container.appendChild(btn);
+  });
 
-      if (pageInfo) pageInfo.textContent = `${currentPageAvailable} / ${totalPages}`;
+  // Cập nhật info dạng 1/n
+  document.getElementById("pageInfo").textContent = `${currentPageAvailable} / ${totalPages}`;
 
-      document.getElementById("firstPageBtn").onclick = () => TaskManager.loadTasks(1);
-      document.getElementById("prevPageBtn").onclick = () => {
-        if (currentPageAvailable > 1) TaskManager.loadTasks(currentPageAvailable - 1);
-      };
-      document.getElementById("nextPageBtn").onclick = () => {
-        if (currentPageAvailable < totalPages) TaskManager.loadTasks(currentPageAvailable + 1);
-      };
-      document.getElementById("lastPageBtn").onclick = () => TaskManager.loadTasks(totalPages);
-    },
-
+   // GÁN LẠI SỰ KIỆN CHO NÚT ĐIỀU HƯỚNG
+  document.getElementById("firstPageBtn").onclick = () => {
+    if (currentPageAvailable > 1) {
+      currentPageAvailable = 1;
+      TaskManager.loadTasks(currentPageAvailable, currentPageSubmitted);
+    }
+  };
+  document.getElementById("prevPageBtn").onclick = () => {
+    if (currentPageAvailable > 1) {
+      currentPageAvailable -= 1;
+      TaskManager.loadTasks(currentPageAvailable, currentPageSubmitted);
+    }
+  };
+  document.getElementById("nextPageBtn").onclick = () => {
+    if (currentPageAvailable < totalPages) {
+      currentPageAvailable += 1;
+      TaskManager.loadTasks(currentPageAvailable, currentPageSubmitted);
+    }
+  };
+  document.getElementById("lastPageBtn").onclick = () => {
+    if (currentPageAvailable < totalPages) {
+      currentPageAvailable = totalPages;
+      TaskManager.loadTasks(currentPageAvailable, currentPageSubmitted);
+    }
+  };
+},
     // renderSubmittedPagination(totalCount) {
     //   const totalPages = Math.ceil(totalCount / tasksPerPage);
     //   const container = document.getElementById("pageNumbersSubmitted");
