@@ -320,46 +320,6 @@ const startDate = task.start_date ? DateUtils.formatDate(new Date(task.start_dat
 
   // ==================== MAIN TASK MANAGER ====================
   const TaskManager = {
-    // async loadTasks(page = 1) {
-    //   // try {
-    //   //   const { tasks } = await API.fetchTasks();
-    //   //   this.renderTasks(tasks, "all");
-    //   // } catch (error) {
-    //   //   alert("Failed to load tasks");
-    //   // }
-    // },
-    // async loadTasks() {
-    //   try {
-    //     const { tasks } = await API.fetchTasks();
-
-    //     // Tách riêng
-    //     const allAvailableTasks = tasks.filter((t) => t.status !== "completed");
-    //     const allSubmittedTasks = tasks.filter((t) => t.status === "completed");
-
-    //     // Gán lưu lại nếu cần dùng lại
-    //     this.allAvailableTasks = allAvailableTasks;
-    //     this.allSubmittedTasks = allSubmittedTasks;
-
-    //     // Phân trang available
-    //     const startA = (currentPageAvailable - 1) * tasksPerPage;
-    //     const paginatedAvailable = allAvailableTasks.slice(startA, startA + tasksPerPage);
-
-    //     // Phân trang submitted
-    //     const startS = (currentPageSubmitted - 1) * tasksPerPage;
-    //     const paginatedSubmitted = allSubmittedTasks.slice(startS, startS + tasksPerPage);
-
-    //     // Render từng loại
-    //     this.renderTasks(paginatedAvailable, "available");
-    //     this.renderTasks(paginatedSubmitted, "submitted");
-
-    //     // Render phân trang
-    //     this.renderAvailablePagination(allAvailableTasks.length);
-    //     this.renderSubmittedPagination(allSubmittedTasks.length);
-    //   } catch (error) {
-    //     alert("Failed to load tasks");
-    //     console.error(error);
-    //   }
-    // },
     async loadTasks(pageAvailable = currentPageAvailable, pageSubmitted = currentPageSubmitted) {
       try {
         // Lấy available tasks
@@ -666,12 +626,69 @@ const startDate = task.start_date ? DateUtils.formatDate(new Date(task.start_dat
       alert("Edit functionality to be implemented");
     },
 
-    handleTaskComment(taskId) {
-      // You can implement comment functionality here
-      console.log("Comment on task:", taskId);
-      // For now, just show an alert
-      alert("Comment functionality to be implemented");
-    },
+      handleTaskEdit(taskId) {
+    // Load task data and show update modal
+    this.loadTaskForEdit(taskId);
+  },
+
+  async loadTaskForEdit(taskId) {
+    try {
+      // Fetch task details
+      const response = await fetch(`http://localhost:3000/api/task/${taskId}`);
+      if (!response.ok) throw new Error("Failed to fetch task details");
+      
+      const task = await response.json();
+      
+      // Populate form fields
+      document.getElementById("update-task-id").value = task.task_id;
+      document.getElementById("update-task-name").value = task.title;
+      document.getElementById("update-task-des").value = task.description || "";
+      
+      // Format dates for the date picker
+      if (task.start_date && task.end_date) {
+        const startDate = moment(task.start_date).format("DD/MM/YYYY hh:mm A");
+        const endDate = moment(task.end_date).format("DD/MM/YYYY hh:mm A");
+        document.getElementById("update-task-time").value = `${startDate} - ${endDate}`;
+      }
+      
+      // Show the modal
+      const modal = new bootstrap.Modal(document.getElementById("update-modal"));
+      modal.show();
+      
+    } catch (error) {
+      console.error("Error loading task for edit:", error);
+      alert("Failed to load task details: " + error.message);
+    }
+  },
+
+  async updateTask(taskId, taskData) {
+    try {
+      await API.updateTask(taskId, taskData);
+      console.log("Task updated successfully");
+      
+      // Close modal and reset form
+      this.closeUpdateModal();
+      
+      // Reload tasks
+      await this.loadTasks();
+    } catch (error) {
+      throw error;
+    }
+  },
+
+  closeUpdateModal() {
+    const modalEl = document.getElementById("update-modal");
+    const bsModal = bootstrap.Modal.getInstance(modalEl);
+    if (bsModal) {
+      bsModal.hide();
+    }
+
+    // Clear form fields
+    const form = document.getElementById("updateTaskForm");
+    if (form) {
+      form.reset();
+    }
+  },
 
     async createTask(taskData) {
       try {
@@ -748,16 +765,31 @@ const startDate = task.start_date ? DateUtils.formatDate(new Date(task.start_dat
   const FormManager = {
     init() {
       const createForm = document.getElementById("createTaskForm");
-      if (!createForm) return;
-
+      if (createForm) {
       createForm.addEventListener("submit", async (e) => {
         e.preventDefault();
         await this.handleCreateTaskSubmission();
       });
-    },
+    }
+    
+    const updateForm = document.getElementById("updateTaskForm");
+    if (updateForm) {
+      updateForm.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        await this.handleUpdateTaskSubmission();
+      });
+    }
 
- // ...existing code...
-async handleCreateTaskSubmission() {
+    // Add update button handler
+    const updateBtn = document.getElementById("updateTaskBtn");
+    if (updateBtn) {
+      updateBtn.addEventListener("click", async () => {
+        await this.handleUpdateTaskSubmission();
+      });
+    }
+  },
+
+  async handleCreateTaskSubmission() {
   const titleInput = document.getElementById("modal-task-name");
   const descriptionInput = document.getElementById("modal-task-des");
   const timeRangeInput = document.getElementById("modal-task-time");
@@ -879,9 +911,104 @@ async handleCreateTaskSubmission() {
     console.error("Task creation error:", error);
     alert("Failed to create task: " + (error.message || error));
   }
-}
-// ...existing code...
-  };
+},
+  async handleUpdateTaskSubmission() {
+    const taskIdInput = document.getElementById("update-task-id");
+    const titleInput = document.getElementById("update-task-name");
+    const descriptionInput = document.getElementById("update-task-des");
+    const timeRangeInput = document.getElementById("update-task-time");
+
+    const taskId = taskIdInput?.value;
+    const title = titleInput?.value?.trim() || "";
+    const description = descriptionInput?.value?.trim() || "";
+    const timeRangeStr = timeRangeInput?.value?.trim() || "";
+
+    // Validation
+    if (!taskId) {
+      alert("Task ID is missing.");
+      return;
+    }
+
+    if (!title) {
+      alert("Please enter a title.");
+      return;
+    }
+
+    console.log("Raw time range input:", timeRangeStr); // Debug log
+
+    let startDateISO = null;
+    let endDateISO = null;
+
+    // Parse dates if provided
+    if (timeRangeStr) {
+      try {
+        const dateRangeParts = timeRangeStr.split(' - ');
+        
+        if (dateRangeParts.length === 2) {
+          const startDateStr = dateRangeParts[0].trim();
+          const endDateStr = dateRangeParts[1].trim();
+          
+          console.log("Start date string:", startDateStr);
+          console.log("End date string:", endDateStr);
+          
+          // Try different moment.js parsing formats
+          let startMoment = moment(startDateStr, "DD/MM/YYYY hh:mm A");
+          if (!startMoment.isValid()) {
+            startMoment = moment(startDateStr, "DD/MM/YYYY h:mm A");
+          }
+          if (!startMoment.isValid()) {
+            startMoment = moment(startDateStr, "MM/DD/YYYY hh:mm A");
+          }
+          
+          let endMoment = moment(endDateStr, "DD/MM/YYYY hh:mm A");
+          if (!endMoment.isValid()) {
+            endMoment = moment(endDateStr, "DD/MM/YYYY h:mm A");
+          }
+          if (!endMoment.isValid()) {
+            endMoment = moment(endDateStr, "MM/DD/YYYY hh:mm A");
+          }
+          
+          if (startMoment.isValid() && endMoment.isValid()) {
+            startDateISO = startMoment.toISOString();
+            endDateISO = endMoment.toISOString();
+          } else {
+            throw new Error("Invalid date format");
+          }
+        }
+      } catch (error) {
+        console.error("Date parsing error:", error);
+        alert("Invalid date/time format. Please check your input.");
+        return;
+      }
+
+      // Validate that end date is after start date
+      if (startDateISO && endDateISO && new Date(endDateISO) <= new Date(startDateISO)) {
+        alert("End date must be after start date.");
+        return;
+      }
+    }
+
+    // Build payload for update
+    const payload = {
+      title: title,
+      description: description,
+    };
+
+    // Only include dates if they were provided and parsed successfully
+    if (startDateISO) payload.start_date = startDateISO;
+    if (endDateISO) payload.end_date = endDateISO;
+
+    console.log("Update payload being sent:", payload); // Debug log
+
+    try {
+      await TaskManager.updateTask(taskId, payload);
+      alert("Task updated successfully!");
+    } catch (error) {
+      console.error("Task update error:", error);
+      alert("Failed to update task: " + (error.message || error));
+    }
+  }
+};
 
   // ==================== INITIALIZATION ====================
   function init() {
