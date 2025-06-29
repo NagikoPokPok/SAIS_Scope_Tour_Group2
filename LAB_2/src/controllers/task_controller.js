@@ -31,15 +31,40 @@ exports.createTask = async (req, res) => {
 // Fetch tasks by subject and team (with optional search)
 exports.getTasks = async (req, res) => {
   try {
-    const { subjectId, teamId, search } = req.query;
+    const { subjectId, teamId, search, status } = req.query;
     let whereClause = {};
     if (subjectId) whereClause.subject_id = subjectId;
     if (teamId) whereClause.team_id = teamId;
     if (search && search.trim()) {
       whereClause.title = { [Op.like]: `%${search.trim()}%` };
     }
-    const tasks = await Task.findAll({ where: whereClause });
-    return res.status(200).json({ tasks });
+    // Thêm lọc status
+    if (status === "completed") {
+      whereClause.status = "completed";
+    } else if (status === "not_completed") {
+      whereClause.status = { [Op.ne]: "completed" };
+    }
+    // const tasks = await Task.findAll({ where: whereClause });
+    // return res.status(200).json({ tasks });
+
+    // Pagination parameters
+    const { page = 1, limit = 5 } = req.query;
+    const offset = (page - 1) * limit;
+
+    const { count, rows } = await Task.findAndCountAll({
+      where: whereClause,
+      limit: parseInt(limit),
+      offset: parseInt(offset),
+      order: [['created_at', 'DESC']]
+    });
+
+    return res.status(200).json({
+      tasks: rows,
+      total: count,
+      currentPage: parseInt(page),
+      totalPages: Math.ceil(count / limit)
+    });
+
   } catch (error) {
     console.error("Error fetching tasks:", error);
     return res.status(500).json({ error: error.message });

@@ -475,6 +475,17 @@
                   Available Tasks
                 </button>
               </h2>
+              <!-- Pagination -->
+              <div id="task-pagination" class="d-flex justify-content-center gap-2 my-3">
+                <button id="firstPageBtn" class="btn btn-outline-primary">« First</button>
+                <button id="prevPageBtn" class="btn btn-outline-primary">‹ Prev</button>
+                <div id="pageNumbers" class="d-flex gap-1 align-items-center px-2"></div>
+                <button id="nextPageBtn" class="btn btn-outline-primary">Next ›</button>
+                <button id="lastPageBtn" class="btn btn-outline-primary">Last »</button>
+
+                <!-- Hiển thị số trang dạng 1/5 -->
+                <span id="pageInfo" class="ms-3 fw-semibold text-primary"></span>
+              </div>
               <!-- Accordion-BODY -->
               <div id="panelsStayOpen-collapseOne" class="accordion-collapse collapse show">
                 <div class="accordion-body">
@@ -640,11 +651,24 @@
                 <button class="accordion-button collapsed fs-5 text-primary fw-medium" type="button" data-bs-toggle="collapse" data-bs-target="#panelsStayOpen-collapseTwo" aria-expanded="false" aria-controls="panelsStayOpen-collapseTwo">
                   Submitted Tasks
                 </button>
+                <!-- Pagination -->
+                      <div id="task-pagination-sub" class="d-flex justify-content-center gap-2 my-3">
+                        <button id="firstPageSubBtn" class="btn btn-outline-primary">« First</button>
+                        <button id="prevPageSubBtn" class="btn btn-outline-primary">‹ Prev</button>
+                        <div id="pageNumbersSub" class="d-flex gap-1 align-items-center px-2"></div>
+                        <button id="nextPageSubBtn" class="btn btn-outline-primary">Next ›</button>
+                        <button id="lastPageSubBtn" class="btn btn-outline-primary">Last »</button>
+
+                        <!-- Hiển thị số trang dạng 1/5 -->
+                        <span id="pageInfoSub" class="ms-3 fw-semibold text-primary"></span>
+                      </div>
               </h2>
               <div id="panelsStayOpen-collapseTwo" class="accordion-collapse collapse">
                 <div class="accordion-body">
+                  
                   <div class="item-submitted-task container text-center p-0">
                     <div class="row w-100 gx-4 align-items-center justify-content-center my-3">
+
       
                          <div class="col check-task">
                             <!-- Task item -->

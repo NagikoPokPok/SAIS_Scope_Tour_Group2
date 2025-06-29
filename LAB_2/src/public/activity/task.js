@@ -1,3 +1,6 @@
+let currentPageAvailable = 1;
+let currentPageSubmitted = 1;
+let tasksPerPage = 5;
 document.addEventListener("DOMContentLoaded", function () {
   // ==================== INITIALIZATION ====================
   const urlParams = new URLSearchParams(window.location.search);
@@ -51,11 +54,21 @@ document.addEventListener("DOMContentLoaded", function () {
 
   // ==================== API FUNCTIONS ====================
   const API = {
-    async fetchTasks() {
+    async fetchTasks(page = 1, limit = tasksPerPage, status = "") {
+      // try {
+      //   const response = await fetch(
+      //     `http://localhost:3000/api/task?subjectId=${subjectId}&teamId=${teamId}&page=${page}&limit=${limit}`
+      //   );
+      //   if (!response.ok) throw new Error("Failed to fetch tasks");
+      //   return await response.json();
+      // } catch (error) {
+      //   console.error("Error fetching tasks:", error);
+      //   throw error;
+      // }
       try {
-        const response = await fetch(
-          `http://localhost:3000/api/task?subjectId=${subjectId}&teamId=${teamId}`
-        );
+        let url = `http://localhost:3000/api/task?subjectId=${subjectId}&teamId=${teamId}&page=${page}&limit=${limit}`;
+        if (status) url += `&status=${status}`;
+        const response = await fetch(url);
         if (!response.ok) throw new Error("Failed to fetch tasks");
         return await response.json();
       } catch (error) {
@@ -307,12 +320,61 @@ document.addEventListener("DOMContentLoaded", function () {
 
   // ==================== MAIN TASK MANAGER ====================
   const TaskManager = {
-    async loadTasks() {
+    // async loadTasks(page = 1) {
+    //   // try {
+    //   //   const { tasks } = await API.fetchTasks();
+    //   //   this.renderTasks(tasks, "all");
+    //   // } catch (error) {
+    //   //   alert("Failed to load tasks");
+    //   // }
+    // },
+    // async loadTasks() {
+    //   try {
+    //     const { tasks } = await API.fetchTasks();
+
+    //     // Tách riêng
+    //     const allAvailableTasks = tasks.filter((t) => t.status !== "completed");
+    //     const allSubmittedTasks = tasks.filter((t) => t.status === "completed");
+
+    //     // Gán lưu lại nếu cần dùng lại
+    //     this.allAvailableTasks = allAvailableTasks;
+    //     this.allSubmittedTasks = allSubmittedTasks;
+
+    //     // Phân trang available
+    //     const startA = (currentPageAvailable - 1) * tasksPerPage;
+    //     const paginatedAvailable = allAvailableTasks.slice(startA, startA + tasksPerPage);
+
+    //     // Phân trang submitted
+    //     const startS = (currentPageSubmitted - 1) * tasksPerPage;
+    //     const paginatedSubmitted = allSubmittedTasks.slice(startS, startS + tasksPerPage);
+
+    //     // Render từng loại
+    //     this.renderTasks(paginatedAvailable, "available");
+    //     this.renderTasks(paginatedSubmitted, "submitted");
+
+    //     // Render phân trang
+    //     this.renderAvailablePagination(allAvailableTasks.length);
+    //     this.renderSubmittedPagination(allSubmittedTasks.length);
+    //   } catch (error) {
+    //     alert("Failed to load tasks");
+    //     console.error(error);
+    //   }
+    // },
+    async loadTasks(pageAvailable = currentPageAvailable, pageSubmitted = currentPageSubmitted) {
       try {
-        const { tasks } = await API.fetchTasks();
-        this.renderTasks(tasks, "all");
+        // Lấy available tasks
+        const { tasks: availableTasks, total: totalAvailable } = await API.fetchTasks(pageAvailable, tasksPerPage, "not_completed");
+        // Lấy submitted tasks
+        const { tasks: submittedTasks, total: totalSubmitted } = await API.fetchTasks(pageSubmitted, tasksPerPage, "completed"); // Nếu API hỗ trợ lọc status
+
+        this.renderTasks(availableTasks, "available");
+        this.renderTasks(submittedTasks, "submitted");
+
+        this.renderAvailablePagination(totalAvailable);
+        this.renderSubmittedPagination(totalSubmitted);
       } catch (error) {
         alert("Failed to load tasks");
+        console.error(error);
       }
     },
 
@@ -325,53 +387,237 @@ document.addEventListener("DOMContentLoaded", function () {
       }
     },
 
+    // renderTasks(tasks, taskType) {
+    //   const availableContainer = document
+    //     .getElementById("panelsStayOpen-collapseOne")
+    //     .querySelector(".accordion-body");
+    //   const submittedContainer = document
+    //     .getElementById("panelsStayOpen-collapseTwo")
+    //     .querySelector(".accordion-body");
+
+    //   // Clear containers
+    //   if (taskType === "available" || taskType === "all") {
+    //     availableContainer.innerHTML = "";
+    //   }
+    //   if (taskType === "submitted" || taskType === "all") {
+    //     submittedContainer.innerHTML = "";
+    //   }
+
+    //   if (!tasks || tasks.length === 0) {
+    //     this.renderEmptyState(availableContainer, submittedContainer, taskType);
+    //     return;
+    //   }
+
+    //   // Partition tasks by status
+    //   const availableTasks = tasks.filter((t) => t.status !== "completed");
+    //   const submittedTasks = tasks.filter((t) => t.status === "completed");
+
+    //   // Paginate available
+    //   const startA = (currentPageAvailable - 1) * tasksPerPage;
+    //   const endA = startA + tasksPerPage;
+    //   const paginatedAvailable = availableTasks.slice(startA, endA);
+
+    //   // Paginate submitted
+    //   const startS = (currentPageSubmitted - 1) * tasksPerPage;
+    //   const endS = startS + tasksPerPage;
+    //   const paginatedSubmitted = submittedTasks.slice(startS, endS);
+
+    //   // Render available tasks
+    //   if (taskType === "available" || taskType === "all") {
+    //     if (paginatedAvailable.length > 0) {
+    //       paginatedAvailable.forEach((task) => {
+    //         availableContainer.appendChild(TaskElements.createAvailableTaskElement(task));
+    //       });
+    //     } else {
+    //       availableContainer.innerHTML = "<p class='text-center'>No available tasks</p>";
+    //     }
+    //   }
+
+    //   // Render submitted tasks
+    //   if (taskType === "submitted" || taskType === "all") {
+    //     if (paginatedSubmitted.length > 0) {
+    //       paginatedSubmitted.forEach((task) => {
+    //         submittedContainer.appendChild(TaskElements.createSubmittedTaskElement(task));
+    //       });
+    //     } else {
+    //       submittedContainer.innerHTML = "<p class='text-center'>No submitted tasks</p>";
+    //     }
+    //   }
+
+      
+    // },
     renderTasks(tasks, taskType) {
-      const availableContainer = document
-        .getElementById("panelsStayOpen-collapseOne")
-        .querySelector(".accordion-body");
-      const submittedContainer = document
-        .getElementById("panelsStayOpen-collapseTwo")
-        .querySelector(".accordion-body");
+  const availableContainer = document
+    .getElementById("panelsStayOpen-collapseOne")
+    .querySelector(".accordion-body");
+  const submittedContainer = document
+    .getElementById("panelsStayOpen-collapseTwo")
+    .querySelector(".accordion-body");
 
-      // Clear containers
-      if (taskType === "available" || taskType === "all") {
-        availableContainer.innerHTML = "";
+  // Clear containers
+  if (taskType === "available") {
+    availableContainer.innerHTML = "";
+    if (!tasks || tasks.length === 0) {
+      availableContainer.innerHTML = "<p class='text-center'>No available tasks</p>";
+      return;
+    }
+    tasks.forEach((task) => {
+      availableContainer.appendChild(TaskElements.createAvailableTaskElement(task));
+    });
+  } else if (taskType === "submitted") {
+    submittedContainer.innerHTML = "";
+    if (!tasks || tasks.length === 0) {
+      submittedContainer.innerHTML = "<p class='text-center'>No submitted tasks</p>";
+      return;
+    }
+    tasks.forEach((task) => {
+      submittedContainer.appendChild(TaskElements.createSubmittedTaskElement(task));
+    });
+  }
+},
+
+    renderAvailablePagination(totalCount) {
+      const totalPages = Math.ceil(totalCount / tasksPerPage);
+      const container = document.getElementById("pageNumbers");
+      const pageInfo = document.getElementById("pageInfo");
+
+      if (!container) return;
+      container.innerHTML = "";
+
+      for (let i = 1; i <= totalPages; i++) {
+        const btn = document.createElement("button");
+        btn.textContent = i;
+        btn.className = `btn btn-sm ${i === currentPageAvailable ? 'btn-primary' : 'btn-outline-primary'}`;
+        btn.onclick = () => {
+          currentPageAvailable = i;
+          TaskManager.loadTasks();
+        };
+        container.appendChild(btn);
       }
-      if (taskType === "submitted" || taskType === "all") {
-        submittedContainer.innerHTML = "";
-      }
 
-      if (!tasks || tasks.length === 0) {
-        this.renderEmptyState(availableContainer, submittedContainer, taskType);
-        return;
-      }
+      if (pageInfo) pageInfo.textContent = `${currentPageAvailable} / ${totalPages}`;
 
-      // Partition tasks by status
-      const availableTasks = tasks.filter((t) => t.status !== "completed");
-      const submittedTasks = tasks.filter((t) => t.status === "completed");
+      document.getElementById("firstPageBtn").onclick = () => TaskManager.loadTasks(1);
+      document.getElementById("prevPageBtn").onclick = () => {
+        if (currentPageAvailable > 1) TaskManager.loadTasks(currentPageAvailable - 1);
+      };
+      document.getElementById("nextPageBtn").onclick = () => {
+        if (currentPageAvailable < totalPages) TaskManager.loadTasks(currentPageAvailable + 1);
+      };
+      document.getElementById("lastPageBtn").onclick = () => TaskManager.loadTasks(totalPages);
+    },
 
-      // Render available tasks
-      if (taskType === "available" || taskType === "all") {
-        if (availableTasks.length > 0) {
-          availableTasks.forEach((task) => {
-            availableContainer.appendChild(TaskElements.createAvailableTaskElement(task));
-          });
-        } else {
-          availableContainer.innerHTML = "<p class='text-center'>No available tasks</p>";
-        }
-      }
+    // renderSubmittedPagination(totalCount) {
+    //   const totalPages = Math.ceil(totalCount / tasksPerPage);
+    //   const container = document.getElementById("pageNumbersSubmitted");
+    //   const pageInfo = document.getElementById("submittedPageInfo");
 
-      // Render submitted tasks
-      if (taskType === "submitted" || taskType === "all") {
-        if (submittedTasks.length > 0) {
-          submittedTasks.forEach((task) => {
-            submittedContainer.appendChild(TaskElements.createSubmittedTaskElement(task));
-          });
-        } else {
-          submittedContainer.innerHTML = "<p class='text-center'>No submitted tasks</p>";
-        }
+    //   if (!container) return;
+    //   container.innerHTML = "";
+
+    //   for (let i = 1; i <= totalPages; i++) {
+    //     const btn = document.createElement("button");
+    //     btn.textContent = i;
+    //     btn.className = `btn btn-sm ${i === currentPageSubmitted ? 'btn-primary' : 'btn-outline-primary'}`;
+    //     btn.onclick = () => {
+    //       currentPageSubmitted = i;
+    //       TaskManager.loadTasks();
+    //     };
+    //     container.appendChild(btn);
+    //   }
+
+    //   if (pageInfo) pageInfo.textContent = `${currentPageSubmitted} / ${totalPages}`;
+
+    //   document.getElementById("firstPageSubmittedBtn").onclick = () => TaskManager.loadTasks(1);
+    //   document.getElementById("prevPageSubmittedBtn").onclick = () => {
+    //     if (currentPageSubmitted > 1) TaskManager.loadTasks(currentPageSubmitted - 1);
+    //   };
+    //   document.getElementById("nextPageSubmittedBtn").onclick = () => {
+    //     if (currentPageSubmitted < totalPages) TaskManager.loadTasks(currentPageSubmitted + 1);
+    //   };
+    //   document.getElementById("lastPageSubmittedBtn").onclick = () => TaskManager.loadTasks(totalPages);
+    // },
+    renderSubmittedPagination(totalCount) {
+    const totalPages = Math.ceil(totalCount / tasksPerPage);
+    const container = document.getElementById("pageNumbersSubmitted");
+    const pageInfo = document.getElementById("submittedPageInfo");
+
+    if (!container) return;
+    container.innerHTML = "";
+
+    // Đoạn này cần tạo các nút số trang như phần available
+    for (let i = 1; i <= totalPages; i++) {
+      const btn = document.createElement("button");
+      btn.textContent = i;
+      btn.className = `btn btn-sm ${i === currentPageSubmitted ? 'btn-primary' : 'btn-outline-primary'}`;
+      btn.onclick = () => {
+        currentPageSubmitted = i;
+        TaskManager.loadTasks(currentPageAvailable, i);
+      };
+      container.appendChild(btn);
+    }
+
+    if (pageInfo) pageInfo.textContent = `${currentPageSubmitted} / ${totalPages}`;
+
+    document.getElementById("firstPageSubmittedBtn").onclick = () => TaskManager.loadTasks(currentPageAvailable, 1);
+    document.getElementById("prevPageSubmittedBtn").onclick = () => {
+      if (currentPageSubmitted > 1) TaskManager.loadTasks(currentPageAvailable, currentPageSubmitted - 1);
+    };
+    document.getElementById("nextPageSubmittedBtn").onclick = () => {
+      if (currentPageSubmitted < totalPages) TaskManager.loadTasks(currentPageAvailable, currentPageSubmitted + 1);
+    };
+    document.getElementById("lastPageSubmittedBtn").onclick = () => TaskManager.loadTasks(currentPageAvailable, totalPages);
+},
+
+    updatePageInfo(current, total) {
+      const pageInfo = document.getElementById("pageInfo");
+      if (pageInfo) {
+        pageInfo.textContent = `${current} / ${total}`;
       }
     },
+
+    renderPagination(totalPages) {
+      const pageContainer = document.getElementById("pageNumbers");
+      if (!pageContainer) return;
+
+      pageContainer.innerHTML = "";
+
+      for (let i = 1; i <= totalPages; i++) {
+        const btn = document.createElement("button");
+        btn.textContent = i;
+        btn.className = `btn btn-sm ${i === currentPage ? 'btn-primary' : 'btn-outline-primary'}`;
+        btn.addEventListener("click", () => {
+          this.loadTasks(i);
+        });
+        pageContainer.appendChild(btn);
+      }
+    },
+
+    attachPaginationListeners(totalPages) {
+      const firstBtn = document.getElementById("firstPageBtn");
+      const prevBtn = document.getElementById("prevPageBtn");
+      const nextBtn = document.getElementById("nextPageBtn");
+      const lastBtn = document.getElementById("lastPageBtn");
+
+      if (!firstBtn || !prevBtn || !nextBtn || !lastBtn) return;
+
+      firstBtn.onclick = () => {
+        if (currentPage > 1) this.loadTasks(1);
+      };
+
+      prevBtn.onclick = () => {
+        if (currentPage > 1) this.loadTasks(currentPage - 1);
+      };
+
+      nextBtn.onclick = () => {
+        if (currentPage < totalPages) this.loadTasks(currentPage + 1);
+      };
+
+      lastBtn.onclick = () => {
+        if (currentPage < totalPages) this.loadTasks(totalPages);
+      };
+    },
+
 
     renderEmptyState(availableContainer, submittedContainer, taskType) {
       if (taskType === "available" || taskType === "all") {
