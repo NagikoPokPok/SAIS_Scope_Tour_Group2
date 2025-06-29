@@ -37,12 +37,12 @@ document.addEventListener("DOMContentLoaded", function () {
 
     getTaskStatus(task) {
       const today = new Date();
-      const dueDate = new Date(task.due_date);
-      const createdDate = new Date(task.created_at);
+      const endDate = new Date(task.end_date); 
+      const startDate = new Date(task.start_date); 
 
-      if (dueDate < today) {
+      if (endDate < today) {
         return "Overdue";
-      } else if (today >= createdDate && today <= dueDate) {
+      } else if (today >= startDate && today <= endDate) {
         return "In progress";
       }
       return "Upcoming";
@@ -150,8 +150,8 @@ document.addEventListener("DOMContentLoaded", function () {
       container.dataset.taskId = task.task_id;
 
       const status = DateUtils.getTaskStatus(task);
-      const createdDate = DateUtils.formatDate(new Date(task.created_at));
-      const dueDate = DateUtils.formatDate(new Date(task.due_date));
+const startDate = task.start_date ? DateUtils.formatDate(new Date(task.start_date)) : "No start date";
+  const endDate = task.end_date ? DateUtils.formatDate(new Date(task.end_date)) : "No end date";
 
       container.innerHTML = `
         <div class="row w-100 gx-4 align-items-center justify-content-center my-3">
@@ -173,9 +173,9 @@ document.addEventListener("DOMContentLoaded", function () {
               ${status}
             </span>
             <div class="due-time fw-light">
-              <span class="open-time text-secondary">${createdDate}</span>
+              <span class="open-time text-secondary">${startDate}</span>
               <hr />
-              <span class="end-time text-secondary">${dueDate}</span>
+              <span class="end-time text-secondary">${endDate}</span>
             </div>
           </div>
           <div class="action-list col text-end d-flex justify-content-end align-items-center text-primary">
@@ -510,47 +510,131 @@ document.addEventListener("DOMContentLoaded", function () {
       });
     },
 
-    async handleCreateTaskSubmission() {
-      const titleInput = document.getElementById("modal-task-name");
-      const descriptionInput = document.getElementById("modal-task-des");
-      const dueDateInput = document.getElementById("modal-task-time");
+ // ...existing code...
+async handleCreateTaskSubmission() {
+  const titleInput = document.getElementById("modal-task-name");
+  const descriptionInput = document.getElementById("modal-task-des");
+  const timeRangeInput = document.getElementById("modal-task-time");
 
-      const title = titleInput.value.trim();
-      const description = descriptionInput.value.trim();
-      const dueDateStr = dueDateInput.value.trim();
+  const title = titleInput?.value?.trim() || "";
+  const description = descriptionInput?.value?.trim() || "";
+  const timeRangeStr = timeRangeInput?.value?.trim() || "";
 
-      // Validation
-      if (!title) {
-        alert("Please enter a title.");
-        return;
+  // Validation
+  if (!title) {
+    alert("Please enter a title.");
+    return;
+  }
+
+  if (!timeRangeStr) {
+    alert("Please select a date and time.");
+    return;
+  }
+
+  console.log("Raw time range input:", timeRangeStr); // Debug log
+
+  let startDateISO = null;
+  let endDateISO = null;
+
+  try {
+    // Parse the date range from the input
+    // Expected format: "10/03/2025 10:00 AM - 11/03/2025 06:00 PM"
+    const dateRangeParts = timeRangeStr.split(' - ');
+    
+    if (dateRangeParts.length === 2) {
+      // Parse start date
+      const startDateStr = dateRangeParts[0].trim();
+      const endDateStr = dateRangeParts[1].trim();
+      
+      console.log("Start date string:", startDateStr);
+      console.log("End date string:", endDateStr);
+      
+      // Try different moment.js parsing formats
+      let startMoment = moment(startDateStr, "DD/MM/YYYY hh:mm A");
+      if (!startMoment.isValid()) {
+        startMoment = moment(startDateStr, "DD/MM/YYYY h:mm A");
       }
-
-      // Parse date using moment.js
-      let dueDateISO = null;
-      if (dueDateStr) {
-        const m = moment(dueDateStr, "DD/MM/YYYY hh:mm A");
-        if (!m.isValid()) {
-          alert("Invalid date/time format.");
-          return;
-        }
-        dueDateISO = m.toISOString();
+      if (!startMoment.isValid()) {
+        startMoment = moment(startDateStr, "MM/DD/YYYY hh:mm A");
       }
-
-      // Build payload
-      const payload = {
-        subject_id: subjectId,
-        team_id: teamId,
-        title: title,
-        description: description,
-        due_date: dueDateISO,
-      };
-
-      try {
-        await TaskManager.createTask(payload);
-      } catch (error) {
-        alert("Failed to create task: " + error.message);
+      
+      let endMoment = moment(endDateStr, "DD/MM/YYYY hh:mm A");
+      if (!endMoment.isValid()) {
+        endMoment = moment(endDateStr, "DD/MM/YYYY h:mm A");
+      }
+      if (!endMoment.isValid()) {
+        endMoment = moment(endDateStr, "MM/DD/YYYY hh:mm A");
+      }
+      
+      if (startMoment.isValid() && endMoment.isValid()) {
+        startDateISO = startMoment.toISOString();
+        endDateISO = endMoment.toISOString();
+      } else {
+        throw new Error("Invalid date format");
+      }
+    } else {
+      // Single date input - treat as end date, use current time as start
+      let endMoment = moment(timeRangeStr, "DD/MM/YYYY hh:mm A");
+      if (!endMoment.isValid()) {
+        endMoment = moment(timeRangeStr, "DD/MM/YYYY h:mm A");
+      }
+      if (!endMoment.isValid()) {
+        endMoment = moment(timeRangeStr, "MM/DD/YYYY hh:mm A");
+      }
+      
+      if (endMoment.isValid()) {
+        startDateISO = new Date().toISOString();
+        endDateISO = endMoment.toISOString();
+      } else {
+        throw new Error("Invalid date format");
       }
     }
+  } catch (error) {
+    console.error("Date parsing error:", error);
+    alert("Invalid date/time format. Please check your input.");
+    return;
+  }
+
+  // Validate that we have valid dates
+  if (!startDateISO || !endDateISO) {
+    alert("Please provide valid start and end dates.");
+    return;
+  }
+
+  // Validate that end date is after start date
+  if (new Date(endDateISO) <= new Date(startDateISO)) {
+    alert("End date must be after start date.");
+    return;
+  }
+
+  // Build payload to match your controller and model exactly
+  const payload = {
+    subject_id: parseInt(subjectId, 10),
+    team_id: parseInt(teamId, 10),
+    title: title,
+    description: description,
+    start_date: startDateISO,
+    end_date: endDateISO,
+    status: 'pending'
+  };
+
+  // Validate required fields
+  if (!payload.subject_id || !payload.team_id) {
+    alert("Missing subject or team information.");
+    return;
+  }
+
+  console.log("Final payload being sent:", payload); // Debug log
+
+  try {
+    await TaskManager.createTask(payload);
+    alert("Task created successfully!");
+  } catch (error) {
+    console.error("Task creation error:", error);
+    alert("Failed to create task: " + (error.message || error));
+  }
+}
+// ...existing code...
   };
 
   // ==================== INITIALIZATION ====================

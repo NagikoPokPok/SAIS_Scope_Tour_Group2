@@ -26,16 +26,15 @@ const Task = sequelize.define('Task', {
   description: {
     type: DataTypes.TEXT
   },
-  due_date: {
+  start_date: {
+    type: DataTypes.DATE,
+  },
+  end_date: {
     type: DataTypes.DATE
   },
   status: {
     type: DataTypes.STRING(50),
     defaultValue: 'pending'
-  },
-  created_at: {
-    type: DataTypes.DATE,
-    defaultValue: DataTypes.NOW
   }
 }, {
   tableName: 'task',
