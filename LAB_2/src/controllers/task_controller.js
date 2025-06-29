@@ -5,19 +5,26 @@ const Task = require('../models/Task');  // Use Task model
 // Create a new task
 exports.createTask = async (req, res) => {
   try {
-    const { user_id, team_id, subject_id, title, description, due_date } = req.body;
+    const { user_id, team_id, subject_id, title, description, start_date, end_date } = req.body;
+    
+    // Debug log to see what's received
+    console.log("Received payload:", req.body);
+    
     if (!subject_id || !title) {
       return res.status(400).json({ error: 'subject_id and title are required' });
     }
+    
     const newTask = await Task.create({
       user_id,
       team_id,
       subject_id,
       title,
       description,
-      due_date,
+      start_date,
+      end_date,
       status: 'pending'
     });
+    
     return res.status(201).json({
       message: 'Task created successfully!',
       data: newTask
@@ -88,7 +95,7 @@ exports.getTaskById = async (req, res) => {
 exports.updateTask = async (req, res) => {
   try {
     const { id } = req.params;
-    const { title, description, due_date, status, completed_at } = req.body; // Added completed_at
+    const { title, description, start_date, end_date, status, completed_at } = req.body;
     const task = await Task.findByPk(id);
     if (!task) return res.status(404).json({ error: 'Task not found' });
     
@@ -96,7 +103,8 @@ exports.updateTask = async (req, res) => {
     const updateData = {};
     if (title !== undefined) updateData.title = title;
     if (description !== undefined) updateData.description = description;
-    if (due_date !== undefined) updateData.due_date = due_date;
+    if (start_date !== undefined) updateData.start_date = start_date ? new Date(start_date) : null;
+    if (end_date !== undefined) updateData.end_date = end_date ? new Date(end_date) : null;
     if (status !== undefined) updateData.status = status;
     if (completed_at !== undefined) updateData.completed_at = completed_at;
     
