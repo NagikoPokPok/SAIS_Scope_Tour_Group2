@@ -12,3 +12,8 @@
 1. Should ScopeTour remain 24/7 or should it shut down 1 hour daily to backup data?
 2. Which is the lowest cost way should be use to recover from faults when a database in Scope Tour fail?
 3. Can we prevent faults by removal from sevice easily when the system like ScopeTour is too complicated and the developer responsible for system allocation coding is still inexperienced?
+
+//Tran Quang Hieu
+1.Khi xảy ra sự cố phần cứng (như ổ cứng hỏng hoặc nguồn điện chập chờn), làm thế nào để không ảnh hưởng đến availability?
+2.Nếu người dùng gặp lỗi đăng nhập do quá nhiều phiên truy cập đồng thời, làm sao để cải thiện và duy trì availability?
+3.Làm thế nào để phát hiện downtime càng sớm càng tốt và cảnh báo?
