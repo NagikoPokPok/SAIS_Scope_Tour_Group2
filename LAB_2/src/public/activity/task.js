@@ -345,6 +345,65 @@ const startDate = task.start_date ? DateUtils.formatDate(new Date(task.start_dat
       }
     },
 
+    // renderTasks(tasks, taskType) {
+    //   const availableContainer = document
+    //     .getElementById("panelsStayOpen-collapseOne")
+    //     .querySelector(".accordion-body");
+    //   const submittedContainer = document
+    //     .getElementById("panelsStayOpen-collapseTwo")
+    //     .querySelector(".accordion-body");
+
+    //   // Clear containers
+    //   if (taskType === "available" || taskType === "all") {
+    //     availableContainer.innerHTML = "";
+    //   }
+    //   if (taskType === "submitted" || taskType === "all") {
+    //     submittedContainer.innerHTML = "";
+    //   }
+
+    //   if (!tasks || tasks.length === 0) {
+    //     this.renderEmptyState(availableContainer, submittedContainer, taskType);
+    //     return;
+    //   }
+
+    //   // Partition tasks by status
+    //   const availableTasks = tasks.filter((t) => t.status !== "completed");
+    //   const submittedTasks = tasks.filter((t) => t.status === "completed");
+
+    //   // Paginate available
+    //   const startA = (currentPageAvailable - 1) * tasksPerPage;
+    //   const endA = startA + tasksPerPage;
+    //   const paginatedAvailable = availableTasks.slice(startA, endA);
+
+    //   // Paginate submitted
+    //   const startS = (currentPageSubmitted - 1) * tasksPerPage;
+    //   const endS = startS + tasksPerPage;
+    //   const paginatedSubmitted = submittedTasks.slice(startS, endS);
+
+    //   // Render available tasks
+    //   if (taskType === "available" || taskType === "all") {
+    //     if (paginatedAvailable.length > 0) {
+    //       paginatedAvailable.forEach((task) => {
+    //         availableContainer.appendChild(TaskElements.createAvailableTaskElement(task));
+    //       });
+    //     } else {
+    //       availableContainer.innerHTML = "<p class='text-center'>No available tasks</p>";
+    //     }
+    //   }
+
+    //   // Render submitted tasks
+    //   if (taskType === "submitted" || taskType === "all") {
+    //     if (paginatedSubmitted.length > 0) {
+    //       paginatedSubmitted.forEach((task) => {
+    //         submittedContainer.appendChild(TaskElements.createSubmittedTaskElement(task));
+    //       });
+    //     } else {
+    //       submittedContainer.innerHTML = "<p class='text-center'>No submitted tasks</p>";
+    //     }
+    //   }
+
+      
+    // },
     renderTasks(tasks, taskType) {
   const availableContainer = document
     .getElementById("panelsStayOpen-collapseOne")
@@ -374,6 +433,37 @@ const startDate = task.start_date ? DateUtils.formatDate(new Date(task.start_dat
     });
   }
 },
+
+    // renderAvailablePagination(totalCount) {
+    //   const totalPages = Math.ceil(totalCount / tasksPerPage);
+    //   const container = document.getElementById("pageNumbers");
+    //   const pageInfo = document.getElementById("pageInfo");
+
+    //   if (!container) return;
+    //   container.innerHTML = "";
+
+    //   for (let i = 1; i <= totalPages; i++) {
+    //     const btn = document.createElement("button");
+    //     btn.textContent = i;
+    //     btn.className = `btn btn-sm ${i === currentPageAvailable ? 'btn-primary' : 'btn-outline-primary'}`;
+    //     btn.onclick = () => {
+    //       currentPageAvailable = i;
+    //       TaskManager.loadTasks();
+    //     };
+    //     container.appendChild(btn);
+    //   }
+
+    //   if (pageInfo) pageInfo.textContent = `${currentPageAvailable} / ${totalPages}`;
+
+    //   document.getElementById("firstPageBtn").onclick = () => TaskManager.loadTasks(1);
+    //   document.getElementById("prevPageBtn").onclick = () => {
+    //     if (currentPageAvailable > 1) TaskManager.loadTasks(currentPageAvailable - 1);
+    //   };
+    //   document.getElementById("nextPageBtn").onclick = () => {
+    //     if (currentPageAvailable < totalPages) TaskManager.loadTasks(currentPageAvailable + 1);
+    //   };
+    //   document.getElementById("lastPageBtn").onclick = () => TaskManager.loadTasks(totalPages);
+    // },
     
  renderAvailablePagination(totalCount) {
   const totalPages = Math.ceil(totalCount / tasksPerPage);
@@ -407,58 +497,7 @@ const startDate = task.start_date ? DateUtils.formatDate(new Date(task.start_dat
   });
 
   // Cập nhật info dạng 1/n
-  document.getElementById("pageInfo").innerHTML = `
-    <input id="pageInputAvailable" type="text" inputmode="numeric" pattern="[0-9]*" min="1" max="${totalPages}" value="${currentPageAvailable}"
-    class="email"
-      size="${Math.max(currentPageAvailable.toString().length, 2)}"
-      style="min-width:32px; width:auto; text-align:center; font-weight:bold; border:1px solid #ff914d; color:#ff914d; border-radius:4px;"
-    />
-    <span style="color: #ff914d; font-weight: bold;"> / ${totalPages}</span>
-  `;
-  const input = document.getElementById("pageInputAvailable");
-
-  // Tự động co giãn width input theo số lượng chữ số
-  input.addEventListener("input", () => {
-    // Chỉ giữ lại ký tự số
-    input.value = input.value.replace(/[^0-9]/g, "");
-
-    let span = document.getElementById("pageInputSizer");
-    if (!span) {
-      span = document.createElement("span");
-      span.id = "pageInputSizer";
-      span.style.visibility = "hidden";
-      span.style.position = "absolute";
-      span.style.whiteSpace = "pre";
-      span.style.fontWeight = "bold";
-      span.style.fontSize = window.getComputedStyle(input).fontSize;
-      document.body.appendChild(span);
-    }
-    span.textContent = input.value || "0";
-    input.style.width = (span.offsetWidth + 16) + "px";
-  });
-  // Gọi 1 lần khi khởi tạo để đúng width ban đầu
-  input.dispatchEvent(new Event("input"));
-
-  input.addEventListener("keydown", (e) => {
-    if (e.key === "Enter") {
-      let val = parseInt(input.value, 10);
-      if (!isNaN(val) && val >= 1 && val <= totalPages && val !== currentPageAvailable) {
-        currentPageAvailable = val;
-        TaskManager.loadTasks(currentPageAvailable, currentPageSubmitted);
-      } else {
-        input.value = currentPageAvailable;
-      }
-    }
-  });
-  input.addEventListener("blur", () => {
-    let val = parseInt(input.value, 10);
-    if (!isNaN(val) && val >= 1 && val <= totalPages && val !== currentPageAvailable) {
-      currentPageAvailable = val;
-      TaskManager.loadTasks(currentPageAvailable, currentPageSubmitted);
-    } else {
-      input.value = currentPageAvailable;
-    }
-  });
+  document.getElementById("pageInfo").textContent = `${currentPageAvailable} / ${totalPages}`;
 
    // GÁN LẠI SỰ KIỆN CHO NÚT ĐIỀU HƯỚNG
   document.getElementById("firstPageBtn").onclick = () => {
@@ -486,6 +525,67 @@ const startDate = task.start_date ? DateUtils.formatDate(new Date(task.start_dat
     }
   };
 },
+    // renderSubmittedPagination(totalCount) {
+    //   const totalPages = Math.ceil(totalCount / tasksPerPage);
+    //   const container = document.getElementById("pageNumbersSubmitted");
+    //   const pageInfo = document.getElementById("submittedPageInfo");
+
+    //   if (!container) return;
+    //   container.innerHTML = "";
+
+    //   for (let i = 1; i <= totalPages; i++) {
+    //     const btn = document.createElement("button");
+    //     btn.textContent = i;
+    //     btn.className = `btn btn-sm ${i === currentPageSubmitted ? 'btn-primary' : 'btn-outline-primary'}`;
+    //     btn.onclick = () => {
+    //       currentPageSubmitted = i;
+    //       TaskManager.loadTasks();
+    //     };
+    //     container.appendChild(btn);
+    //   }
+
+    //   if (pageInfo) pageInfo.textContent = `${currentPageSubmitted} / ${totalPages}`;
+
+    //   document.getElementById("firstPageSubmittedBtn").onclick = () => TaskManager.loadTasks(1);
+    //   document.getElementById("prevPageSubmittedBtn").onclick = () => {
+    //     if (currentPageSubmitted > 1) TaskManager.loadTasks(currentPageSubmitted - 1);
+    //   };
+    //   document.getElementById("nextPageSubmittedBtn").onclick = () => {
+    //     if (currentPageSubmitted < totalPages) TaskManager.loadTasks(currentPageSubmitted + 1);
+    //   };
+    //   document.getElementById("lastPageSubmittedBtn").onclick = () => TaskManager.loadTasks(totalPages);
+    // },
+//     renderSubmittedPagination(totalCount) {
+//     const totalPages = Math.ceil(totalCount / tasksPerPage);
+//     const container = document.getElementById("pageNumbersSubmitted");
+//     const pageInfo = document.getElementById("submittedPageInfo");
+
+//     if (!container) return;
+//     container.innerHTML = "";
+
+//     // Đoạn này cần tạo các nút số trang như phần available
+//     for (let i = 1; i <= totalPages; i++) {
+//       const btn = document.createElement("button");
+//       btn.textContent = i;
+//       btn.className = `btn btn-sm ${i === currentPageSubmitted ? 'btn-primary' : 'btn-outline-primary'}`;
+//       btn.onclick = () => {
+//         currentPageSubmitted = i;
+//         TaskManager.loadTasks(currentPageAvailable, i);
+//       };
+//       container.appendChild(btn);
+//     }
+
+//     if (pageInfo) pageInfo.textContent = `${currentPageSubmitted} / ${totalPages}`;
+
+//     document.getElementById("firstPageSubmittedBtn").onclick = () => TaskManager.loadTasks(currentPageAvailable, 1);
+//     document.getElementById("prevPageSubmittedBtn").onclick = () => {
+//       if (currentPageSubmitted > 1) TaskManager.loadTasks(currentPageAvailable, currentPageSubmitted - 1);
+//     };
+//     document.getElementById("nextPageSubmittedBtn").onclick = () => {
+//       if (currentPageSubmitted < totalPages) TaskManager.loadTasks(currentPageAvailable, currentPageSubmitted + 1);
+//     };
+//     document.getElementById("lastPageSubmittedBtn").onclick = () => TaskManager.loadTasks(currentPageAvailable, totalPages);
+// },
     renderSubmittedPagination(totalCount) {
       const totalPages = Math.ceil(totalCount / tasksPerPage);
       const container = document.getElementById("pageNumbersSubmitted");
@@ -514,60 +614,7 @@ const startDate = task.start_date ? DateUtils.formatDate(new Date(task.start_dat
         container.appendChild(btn);
       });
 
-      const pageInfo = document.getElementById("pageInfoSubmitted");
-      if (pageInfo) {
-        pageInfo.innerHTML = `
-          <input id="pageInputSubmitted" type="text" inputmode="numeric" pattern="[0-9]*" min="1" max="${totalPages}" value="${currentPageSubmitted}"
-            style="min-width:32px; width:auto; text-align:center; font-weight:bold; border:1px solid #ff914d; color:#ff914d; border-radius:4px;"
-          />
-          <span style="color: #ff914d; font-weight: bold;"> / ${totalPages}</span>
-        `;
-        const input = document.getElementById("pageInputSubmitted");
-
-        // Tự động co giãn width input theo số lượng chữ số
-        input.addEventListener("input", () => {
-          // Chỉ giữ lại ký tự số
-          input.value = input.value.replace(/[^0-9]/g, "");
-          let span = document.getElementById("pageInputSizerSubmitted");
-          if (!span) {
-            span = document.createElement("span");
-            span.id = "pageInputSizerSubmitted";
-            span.style.visibility = "hidden";
-            span.style.position = "absolute";
-            span.style.whiteSpace = "pre";
-            span.style.fontWeight = "bold";
-            span.style.fontSize = window.getComputedStyle(input).fontSize;
-            document.body.appendChild(span);
-          }
-          span.textContent = input.value || "0";
-          input.style.width = (span.offsetWidth + 16) + "px";
-        });
-        // Gọi 1 lần khi khởi tạo để đúng width ban đầu
-        input.dispatchEvent(new Event("input"));
-
-        input.addEventListener("keydown", (e) => {
-          if (e.key === "Enter") {
-            let val = parseInt(input.value, 10);
-            if (!isNaN(val) && val >= 1 && val <= totalPages && val !== currentPageSubmitted) {
-              currentPageSubmitted = val;
-              TaskManager.loadTasks(currentPageAvailable, currentPageSubmitted);
-            } else {
-              input.value = currentPageSubmitted;
-            }
-          }
-        });
-        input.addEventListener("blur", () => {
-          let val = parseInt(input.value, 10);
-          if (!isNaN(val) && val >= 1 && val <= totalPages && val !== currentPageSubmitted) {
-            currentPageSubmitted = val;
-            TaskManager.loadTasks(currentPageAvailable, currentPageSubmitted);
-          } else {
-            input.value = currentPageSubmitted;
-          }
-        });
-      }
-
-      // document.getElementById("pageInfoSubmitted").textContent = `${currentPageSubmitted} / ${totalPages}`;
+      document.getElementById("pageInfoSubmitted").textContent = `${currentPageSubmitted} / ${totalPages}`;
 
       document.getElementById("firstPageSubmittedBtn").onclick = () => {
         if (currentPageSubmitted > 1) {
@@ -654,45 +701,21 @@ const startDate = task.start_date ? DateUtils.formatDate(new Date(task.start_dat
       }
     },
 
-    // async handleTaskSubmission(taskId) {
-    //   try {
-    //     // Show confirmation dialog
-    //     const confirmed = confirm("Are you sure you want to submit this task?");
-    //     if (!confirmed) return;
-
-    //     await API.submitTask(taskId);
-        
-    //     // Show success message
-    //     alert("Task submitted successfully!");
-        
-    //     // Reload tasks to reflect changes
-    //     await this.loadTasks();
-    //   } catch (error) {
-    //     alert("Failed to submit task: " + error.message);
-    //   }
-    // },
     async handleTaskSubmission(taskId) {
       try {
+        // Show confirmation dialog
         const confirmed = confirm("Are you sure you want to submit this task?");
         if (!confirmed) return;
 
         await API.submitTask(taskId);
-
+        
+        // Show success message
         alert("Task submitted successfully!");
+        
+        // Reload tasks to reflect changes
         await this.loadTasks();
       } catch (error) {
         alert("Failed to submit task: " + error.message);
-
-        // Lưu vào localStorage nếu lỗi mạng
-        if (!navigator.onLine) {
-          let pendingSubmits = JSON.parse(localStorage.getItem("pendingTaskSubmits") || "[]");
-          pendingSubmits.push({
-            taskId,
-            timestamp: Date.now()
-          });
-          localStorage.setItem("pendingTaskSubmits", JSON.stringify(pendingSubmits));
-          alert("Task submission saved locally. It will be retried when you are online.");
-        }
       }
     },
 
@@ -1101,37 +1124,6 @@ const startDate = task.start_date ? DateUtils.formatDate(new Date(task.start_dat
     }
   }
 };
-
-function retryPendingTaskSubmits() {
-  if (!navigator.onLine) return;
-  let pendingSubmits = JSON.parse(localStorage.getItem("pendingTaskSubmits") || "[]");
-  if (pendingSubmits.length === 0) return;
-
-  // Sắp xếp theo thời gian lưu
-  pendingSubmits.sort((a, b) => a.timestamp - b.timestamp);
-
-  // Gửi lại từng task
-  (async () => {
-    for (const item of pendingSubmits) {
-      try {
-        await API.submitTask(item.taskId);
-      } catch (e) {
-        // Nếu vẫn lỗi, giữ lại trong localStorage
-        continue;
-      }
-      // Nếu thành công, xóa khỏi danh sách
-      pendingSubmits = pendingSubmits.filter(x => x.taskId !== item.taskId);
-      localStorage.setItem("pendingTaskSubmits", JSON.stringify(pendingSubmits));
-      await TaskManager.loadTasks();
-    }
-  })();
-}
-
-// Lắng nghe sự kiện online
-window.addEventListener("online", retryPendingTaskSubmits);
-
-// Gọi thử khi khởi động
-retryPendingTaskSubmits();
 
   // ==================== INITIALIZATION ====================
   function init() {
