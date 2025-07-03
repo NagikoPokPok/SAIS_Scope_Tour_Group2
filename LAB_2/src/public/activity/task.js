@@ -54,20 +54,28 @@ document.addEventListener("DOMContentLoaded", function () {
 
   // ==================== API FUNCTIONS ====================
   const API = {
-    async fetchTasks(page = 1, limit = tasksPerPage, status = "", skipCache = "") {
-  try {
-    let url = `http://localhost:3000/api/task?subjectId=${subjectId}&teamId=${teamId}&page=${page}&limit=${limit}`;
-    if (status) url += `&status=${status}`;
-    if (skipCache) url += skipCache;
-    
-    const response = await fetch(url);
-    if (!response.ok) throw new Error("Failed to fetch tasks");
-    return await response.json();
-  } catch (error) {
-    console.error("Error fetching tasks:", error);
-    throw error;
-  }
-},
+    async fetchTasks(page = 1, limit = tasksPerPage, status = "") {
+      // try {
+      //   const response = await fetch(
+      //     `http://localhost:3000/api/task?subjectId=${subjectId}&teamId=${teamId}&page=${page}&limit=${limit}`
+      //   );
+      //   if (!response.ok) throw new Error("Failed to fetch tasks");
+      //   return await response.json();
+      // } catch (error) {
+      //   console.error("Error fetching tasks:", error);
+      //   throw error;
+      // }
+      try {
+        let url = `http://localhost:3000/api/task?subjectId=${subjectId}&teamId=${teamId}&page=${page}&limit=${limit}`;
+        if (status) url += `&status=${status}`;
+        const response = await fetch(url);
+        if (!response.ok) throw new Error("Failed to fetch tasks");
+        return await response.json();
+      } catch (error) {
+        console.error("Error fetching tasks:", error);
+        throw error;
+      }
+    },
 
     async searchTasks(query) {
       try {
@@ -312,28 +320,22 @@ const startDate = task.start_date ? DateUtils.formatDate(new Date(task.start_dat
 
   // ==================== MAIN TASK MANAGER ====================
   const TaskManager = {
-    async loadTasks(pageAvailable = currentPageAvailable, pageSubmitted = currentPageSubmitted, skipCache = false) {
-  try {
-    // Thêm tham số skipCache vào URL nếu cần
-    const skipCacheParam = skipCache ? '&skipCache=true' : '';
-    
-    // Lấy available tasks
-    const { tasks: availableTasks, total: totalAvailable } = 
-      await API.fetchTasks(pageAvailable, tasksPerPage, "not_completed", skipCacheParam);
-    
-    // Lấy submitted tasks
-    const { tasks: submittedTasks, total: totalSubmitted } = 
-      await API.fetchTasks(pageSubmitted, tasksPerPage, "completed", skipCacheParam);
+    async loadTasks(pageAvailable = currentPageAvailable, pageSubmitted = currentPageSubmitted) {
+      try {
+        // Lấy available tasks
+        const { tasks: availableTasks, total: totalAvailable } = await API.fetchTasks(pageAvailable, tasksPerPage, "not_completed");
+        // Lấy submitted tasks
+        const { tasks: submittedTasks, total: totalSubmitted } = await API.fetchTasks(pageSubmitted, tasksPerPage, "completed"); // Nếu API hỗ trợ lọc status
 
-    this.renderTasks(availableTasks, "available");
-    this.renderTasks(submittedTasks, "submitted");
+        this.renderTasks(availableTasks, "available");
+        this.renderTasks(submittedTasks, "submitted");
 
-    this.renderAvailablePagination(totalAvailable);
-    this.renderSubmittedPagination(totalSubmitted);
-  } catch (error) {
-    alert("Failed to load tasks");
-    console.error(error);
-  }
+        this.renderAvailablePagination(totalAvailable);
+        this.renderSubmittedPagination(totalSubmitted);
+      } catch (error) {
+        alert("Failed to load tasks");
+        console.error(error);
+      }
     },
 
     async searchTasks(query) {
@@ -703,9 +705,7 @@ const startDate = task.start_date ? DateUtils.formatDate(new Date(task.start_dat
 
         await API.deleteTask(taskId);
         alert("Task deleted successfully!");
-        
-        // Thêm tham số skipCache=true để không lấy dữ liệu từ cache
-        await this.loadTasks(currentPageAvailable, currentPageSubmitted, true);
+        await this.loadTasks();
       } catch (error) {
         alert("Failed to delete task: " + error.message);
       }
@@ -761,8 +761,8 @@ const startDate = task.start_date ? DateUtils.formatDate(new Date(task.start_dat
       // Close modal and reset form
       this.closeUpdateModal();
       
-      // Thêm tham số skipCache=true để không lấy dữ liệu từ cache
-      await this.loadTasks(currentPageAvailable, currentPageSubmitted, true);
+      // Reload tasks
+      await this.loadTasks();
     } catch (error) {
       throw error;
     }
@@ -786,12 +786,12 @@ const startDate = task.start_date ? DateUtils.formatDate(new Date(task.start_dat
       try {
         await API.createTask(taskData);
         console.log("Task created successfully");
-        await this.loadTasks(1, 1, true);
+        
         // Close modal and reset form
         this.closeCreateModal();
         
         // Reload tasks
-        
+        await this.loadTasks();
       } catch (error) {
         throw error;
       }
