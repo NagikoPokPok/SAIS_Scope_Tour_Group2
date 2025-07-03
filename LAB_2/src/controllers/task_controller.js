@@ -25,6 +25,37 @@ exports.createTask = async (req, res) => {
       status: 'pending'
     });
     
+    // Invalidate relevant cache keys when new task is created
+    if (redisClient.isReady) {
+  console.log('⏳ Invalidating cache after adding new task...');
+  
+  try {
+    // Xóa cache cho các danh sách task
+    const listPattern = `tasks:${subject_id}:${team_id}:*`;
+    const countPattern = `tasks:count:${subject_id}:${team_id}:*`;
+    
+    let deletedCount = 0;
+    
+    // Xóa cache danh sách
+    for await (const key of redisClient.scanIterator(listPattern)) {
+      await redisClient.del(key);
+      deletedCount++;
+      console.log(`🗑️ Invalidated list cache: ${key}`);
+    }
+    
+    // Xóa cache đếm số lượng
+    for await (const key of redisClient.scanIterator(countPattern)) {
+      await redisClient.del(key);
+      deletedCount++;
+      console.log(`🗑️ Invalidated count cache: ${key}`);
+    }
+    
+    console.log(`✅ Total ${deletedCount} cache keys invalidated successfully`);
+  } catch (cacheError) {
+    console.error("❌ Cache invalidation error:", cacheError);
+  }
+}
+    
     return res.status(201).json({
       message: 'Task created successfully!',
       data: newTask
@@ -38,7 +69,37 @@ exports.createTask = async (req, res) => {
 // Fetch tasks by subject and team (with optional search)
 exports.getTasks = async (req, res) => {
   try {
-    const { subjectId, teamId, search, status } = req.query;
+    const { subjectId, teamId, search, status, skipCache } = req.query;
+    const { page = 1, limit = 5 } = req.query;
+    
+    // Không sử dụng cache nếu có skipCache=true hoặc đang search
+    const useCache = !skipCache && !search && redisClient.isReady;
+    
+    // Create cache keys
+    const cacheKey = CACHE_KEYS.TASK_LIST(subjectId, teamId, status, page, limit);
+    const countCacheKey = CACHE_KEYS.TASK_COUNT(subjectId, teamId, status);
+    
+    if (useCache) {
+      // Try to get from cache first
+      const cachedData = await redisClient.get(cacheKey);
+      const cachedCount = await redisClient.get(countCacheKey);
+      
+      if (cachedData && cachedCount) {
+        console.log('✅ Cache hit for tasks');
+        const tasks = JSON.parse(cachedData);
+        const count = parseInt(cachedCount);
+        
+        return res.status(200).json({
+          tasks,
+          total: count,
+          currentPage: parseInt(page),
+          totalPages: Math.ceil(count / limit),
+          fromCache: true
+        });
+      }
+    }
+    
+    // Cache miss or no cache, query the database
     let whereClause = {};
     if (subjectId) whereClause.subject_id = subjectId;
     if (teamId) whereClause.team_id = teamId;
@@ -109,6 +170,42 @@ exports.updateTask = async (req, res) => {
     if (completed_at !== undefined) updateData.completed_at = completed_at;
     
     await task.update(updateData);
+    
+    // Invalidate caches
+    if (redisClient.isReady) {
+  try {
+    console.log(`⏳ Invalidating cache after updating task ${id}...`);
+    
+    // Delete specific task cache
+    const taskCacheKey = CACHE_KEYS.TASK_DETAIL(id);
+    await redisClient.del(taskCacheKey);
+    
+    // Delete all list caches for this task's subject and team
+    const listPattern = `tasks:${task.subject_id}:${task.team_id}:*`;
+    const countPattern = `tasks:count:${task.subject_id}:${task.team_id}:*`;
+    
+    let deletedCount = 0;
+    
+    // Delete list caches
+    for await (const key of redisClient.scanIterator(listPattern)) {
+      await redisClient.del(key);
+      deletedCount++;
+      console.log(`🗑️ Invalidated list cache: ${key}`);
+    }
+    
+    // Delete count caches
+    for await (const key of redisClient.scanIterator(countPattern)) {
+      await redisClient.del(key);
+      deletedCount++;
+      console.log(`🗑️ Invalidated count cache: ${key}`);
+    }
+    
+    console.log(`✅ Total ${deletedCount} cache keys invalidated successfully for task update`);
+  } catch (cacheError) {
+    console.error("❌ Cache invalidation error:", cacheError);
+  }
+}
+    
     return res.status(200).json({
       message: 'Task updated successfully',
       data: task
@@ -126,6 +223,42 @@ exports.deleteTask = async (req, res) => {
     const task = await Task.findByPk(id);
     if (!task) return res.status(404).json({ error: 'Task not found' });
     await task.destroy();
+    
+    // Invalidate caches
+    if (redisClient.isReady) {
+  try {
+    console.log(`⏳ Invalidating cache after deleting task ${id}...`);
+    
+    // Delete specific task cache
+    const taskCacheKey = CACHE_KEYS.TASK_DETAIL(id);
+    await redisClient.del(taskCacheKey);
+    
+    // Delete all list caches for this task's subject and team
+    const listPattern = `tasks:${subject_id}:${team_id}:*`;
+    const countPattern = `tasks:count:${subject_id}:${team_id}:*`;
+    
+    let deletedCount = 0;
+    
+    // Delete list caches
+    for await (const key of redisClient.scanIterator(listPattern)) {
+      await redisClient.del(key);
+      deletedCount++;
+      console.log(`🗑️ Invalidated list cache: ${key}`);
+    }
+    
+    // Delete count caches
+    for await (const key of redisClient.scanIterator(countPattern)) {
+      await redisClient.del(key);
+      deletedCount++;
+      console.log(`🗑️ Invalidated count cache: ${key}`);
+    }
+    
+    console.log(`✅ Total ${deletedCount} cache keys invalidated successfully for task deletion`);
+  } catch (cacheError) {
+    console.error("❌ Cache invalidation error:", cacheError);
+  }
+}
+    
     return res.status(200).json({ message: "Task deleted successfully" });
   } catch (error) {
     console.error("Error deleting task:", error);
