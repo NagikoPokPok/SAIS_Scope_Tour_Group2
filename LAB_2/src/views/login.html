@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" type="image/png" href="../public/img/introduction/icon.png">
+    <title>Scope Tour</title>
+    <link rel="stylesheet" href="../public/css/main-style.css">
+    <link rel="stylesheet" href="../public/css/login.css">
+</head>
+
+<body>
+    <div class="first-login">
+        <div class="img-login2">
+            <img src="../public/img/login/images2.jpg" alt="hello" class="image-descr2">
+        </div>
+    
+        <div class="login-container">
+            <div class="title">
+                <p style="font-size: 28px;" class="title1">Login to your Account</p>
+                <p style="font-size: 16px;" class="title2">See what is going on with your goal</p>
+            </div>
+
+            <!-- Email -->
+            <div class="form-email">
+                <input id="edt_email" type="email" class="email" placeholder="Email" required>
+            </div>
+            <span id="email_error" class="error"></span> <!-- Thêm lỗi email -->
+
+            <!-- Password -->
+            <div class="form-password">
+                <input id="edt_password" type="password" class="password" placeholder="Password" required>
+            </div>
+            <span id="password_error" class="error"></span> <!-- Thêm lỗi password -->
+
+            <div class="forgot-password-form">
+                <a href="#" class="forgot-password">Forgot password?</a>
+            </div>
+
+            <button class="btn-login" type="submit">Sign in</button>
+
+            <div class="sign-up">
+                <p class="label">Not Registered Yet?</p>
+                <a href="signup.html" class="link-sign-up">Create an account</a>
+            </div>
+
+            <div class="login-gg-fb">
+                <div class="fb-login">
+                    <img src="/src/public/img/login/facebook.png" alt="" class="facebook-img">
+                    <p class="facebook">Continue with Facebook</p>
+                </div>
+
+                <div class="gg-login">
+                    <img src="/src/public/img/login/google.png" alt="" class="google-img">
+                    <p class="google">Continue with Google</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="../public/activity/login_activity.js"></script>
+</body>
+
+</html>

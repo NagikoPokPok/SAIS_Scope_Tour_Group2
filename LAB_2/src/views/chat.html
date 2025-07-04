@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="/src/public/css/chat.css">
+    <link rel="stylesheet" href="/src/public/css/main-style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css" integrity="sha512-Evv84Mr4kqVGRNSgIGL/F/aIDqQb7xQ2vcrdIwxfjThSH8CSR7PBEakCr51Ck+w+/U6swU2Im1vVX0SVk9ABhg==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+
+    <title>Document</title>
+</head>
+<body>
+    <div class="chat-container">
+        <div class="header-chat-box">
+            <div class="avatar-group">
+                <img src="/src/public/img/login/facebook.png" alt="" class="avatar">
+            </div>
+            <div class="name">Rhett Sanchez</div>
+
+            <div class="user-streak">
+                <img src="../public/img/list-team-goal/slider2.png" alt="" class="icon-streak">
+                <div class="number-streak">
+                  <span>30</span>
+                </div>
+            </div>
+            
+            <div class="close-icon"><i class="fa-solid fa-xmark"></i></div>
+        </div>
+
+        <div class="chat-box" id="chatBox"></div>
+        <div class="input-container">
+            <input style="font-size: 14px;" type="text" id="messageInput" placeholder="Type a message...">
+            <button onclick="sendMessage()">
+                <i class="fas fa-paper-plane"></i>
+            </button>
+        </div>
+    </div>  
+
+    <script>
+document.addEventListener("DOMContentLoaded", function () {
+    const closeIcon = document.querySelector(".close-icon");
+    const chatContainer = document.querySelector(".chat-container");
+    const messageInput = document.getElementById("messageInput");
+
+    // Sự kiện đóng cửa sổ chat khi nhấn vào icon đóng
+    closeIcon.addEventListener("click", function () {
+        chatContainer.style.display = "none"; 
+    });
+
+    // Sự kiện gửi tin nhắn khi bấm Enter
+    messageInput.addEventListener("keydown", function (event) {
+        if (event.key === "Enter") {
+            event.preventDefault(); // Ngăn xuống dòng trong ô input
+            sendMessage();
+        }
+    });
+});
+
+function sendMessage() {
+    const input = document.getElementById("messageInput");
+    const chatBox = document.getElementById("chatBox");
+    const messageText = input.value.trim();
+
+    if (messageText !== "") {
+        // Tạo tin nhắn gửi đi
+        const messageElement = document.createElement("div");
+        messageElement.classList.add("message", "sent");
+        messageElement.innerText = messageText;
+        chatBox.appendChild(messageElement);
+        chatBox.scrollTop = chatBox.scrollHeight;
+        input.value = "";
+
+        // Giả lập tin nhắn phản hồi từ người khác sau 0.1 giây
+        setTimeout(() => receiveMessage("Hello bro.", "Huy"), 100);
+    }
+}
+
+function receiveMessage(text, nameReceived = "User") {
+    const chatBox = document.getElementById("chatBox");
+
+    // Tạo container cho tin nhắn nhận được
+    const messageContainer = document.createElement("div");
+    messageContainer.classList.add("message-container");
+
+    // Tạo phần hiển thị tên người gửi
+    const nameElement = document.createElement("p");
+    nameElement.classList.add("sender-name");
+    nameElement.innerText = nameReceived;
+
+    // Tạo nội dung tin nhắn
+    const messageElement = document.createElement("div");
+    messageElement.classList.add("message", "received");
+    messageElement.innerText = text;
+
+    // Gắn tên người gửi + tin nhắn vào container
+    messageContainer.appendChild(nameElement);
+    messageContainer.appendChild(messageElement);
+
+    // Thêm vào khung chat
+    chatBox.appendChild(messageContainer);
+    chatBox.scrollTop = chatBox.scrollHeight; // Cuộn xuống tin nhắn mới nhất
+}
+
+</script>
+</body>
+</html>

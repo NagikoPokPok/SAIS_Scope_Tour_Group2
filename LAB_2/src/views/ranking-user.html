@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="icon" type="image/png" href="../public/img/introduction/icon.png">
+  <title>Scope Tour</title>
+  <link href="/css/main.min.css" rel="stylesheet">
+  <link rel="stylesheet" href="../public/css/main-style.css">
+
+
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css" integrity="sha512-Evv84Mr4kqVGRNSgIGL/F/aIDqQb7xQ2vcrdIwxfjThSH8CSR7PBEakCr51Ck+w+/U6swU2Im1vVX0SVk9ABhg==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+  
+  
+  <link rel="stylesheet" href="../public/css/list-goal-team.css">
+  <link rel="stylesheet" href="../public/css/ranking-user.css">
+
+
+  <script type="text/javascript" src="../js/list-goal-team-sidebar.js" defer></script>
+</head>
+<body>
+  <!--Begin: SideBar -->
+  <custom-sidebar data-active-menu="team"></custom-sidebar>
+  <!--End: SideBar -->
+  
+  <!--Begin: Main Content -->
+  <main>
+    <!--Begin: Header -->
+    <div id="header">
+      <div class="header-user">
+        <div class="user-avatar">
+          <i class="fa-solid fa-circle-user"></i>
+        </div>
+        <div class="user-name">
+          <h3 class="my-0">Trần Quang Hiếu</h3>
+        </div>
+        <div class="user-streak">
+          <img src="../public/img/list-team-goal/slider2.png" alt="" class="icon-streak">
+          <div class="number-streak">
+            <span>30</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="header-time">
+        <h4 class="time my-0">
+          9:41
+        </h4>
+      </div>
+    </div>
+    <!--End: Header -->
+    
+    <!-- Begin: Button List -->
+    <div id="buttons">
+      <div class=" button-list">
+        <div class="create-btn">
+          <button data-bs-toggle="modal" 
+          data-bs-target="#reg-modal">
+            <i class="fa-solid fa-circle-plus"></i>
+            <span>Create</span>
+          </button>
+        </div> 
+
+        <div class="search-btn">
+          <input  type="email" placeholder="Seach your task name" required="" name="" id="searchSubject" class="email">
+          <i class="fa-solid fa-magnifying-glass"></i>
+        </div>
+
+        <ul class="button-list-second">
+          <li onclick=openLayoutDelete()>
+            <i class="fa-solid fa-trash-can"></i>
+            <span>Delete</span>
+          </li>
+          <li data-bs-toggle="modal" 
+            data-bs-target="#modal-filter">
+            <i class="fa-solid fa-filter"></i>
+            <span>Filter</span>
+          </li>
+          <li data-bs-toggle="modal" 
+          data-bs-target="#modal-sort">
+            <i class="fa-solid fa-sort"></i>
+            <span>Sort</span>
+          </li>
+        </ul>
+      </div>
+    </div>
+
+      <!-- End: Button List -->
+
+    <!-- Begin: Completion List -->
+    <div class="task-container" id="rank-task">
+        <div class="task-header">
+            <h4 class="task-title">Complete 5 math problems</h4>
+            <p class="task-desc fw-light text-secondary">Subject MTH 294 AIS</p>
+        </div>
+
+        <div class="task-box">
+            <div class="card complete">
+                <div class="icon">
+                    <i class="fa-solid fa-circle-check fa-2xl"></i>
+                </div>
+                <p>Number of members completed task</p>
+                <h3>3</h3>
+                <p class="percentage">75% rate of completely</p>
+            </div>
+
+            <div class="card not-complete">
+                <div class="icon">
+                    <i class="fa-solid fa-circle-xmark fa-2xl"></i>
+                </div>
+                <p>Number of members have not done task</p>
+                <h3>1</h3>
+                <p class="percentage">25% rate of not done</p>
+            </div>
+        </div>
+
+        <div class="three-highest-rank">
+            <div class="first-rank">
+                <!-- avatar -->
+                <div class="profile">
+                    <img src="../public/img/login/facebook.png" alt="Profile Picture">
+                    <div style="font-size: 18px;" class="rank">1</div>
+                </div>
+    
+                <!-- user name -->
+                <div class="name-tag">Bui Thanh Nghia</div>
+    
+                <!-- cup -->
+                <div class="achievement">
+                    <img src="../public/img/cup-achievement/cup1.png" alt="Trophy">
+                    <div class="time">8 min 9 sec</div>
+                </div>
+            </div>
+
+            <div class="second-rank">
+                <!-- avatar -->
+                <div class="profile">
+                    <img src="../public/img/login/google.png" alt="Profile Picture">
+                    <div style="font-size: 18px;" class="rank">2</div>
+                </div>
+    
+                <!-- user name -->
+                <div class="name-tag">Tran Quang Hieu</div>
+    
+                <!-- cup -->
+                <div class="achievement">
+                    <img src="../public/img/cup-achievement/cup2.png" alt="Trophy">
+                    <div class="time">8 min 9 sec</div>
+                </div>
+            </div>
+
+            <div class="third-rank">
+                <!-- avatar -->
+                <div class="profile">
+                    <img src="../public/img/pets/monkey.png" alt="Profile Picture">
+                    <div style="font-size: 18px;" class="rank">3</div>
+                </div>
+    
+                <!-- user name -->
+                <div class="name-tag">Vo Hung Cuong</div>
+    
+                <!-- cup -->
+                <div class="achievement">
+                    <img src="../public/img/cup-achievement/cup3.png" alt="Trophy">
+                    <div class="time">8 min 9 sec</div>
+                </div>
+            </div>
+
+        </div>
+
+        <table class="table table-striped">
+            <thead>
+              <tr>
+                <th scope="col">Name</th>
+                <th scope="col">Ranking</th>
+                <th scope="col">Status</th>
+                <th scope="col">Time</th>
+                <th scope="col">Date</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>Huynh Duc Huy</td>
+                <td>1</td>
+                <td>Complete</td>
+                <td>8 min 9s</td>
+                <td>20 Dec 25</td>
+              </tr>
+              <tr>
+                <td>Huynh Duc Huy</td>
+                <td>2</td>
+                <td>Complete</td>
+                <td>8 min 9s</td>
+                <td>20 Dec 25</td>
+              </tr>
+              <tr>
+                <td>Huynh Duc Huy</td>
+                <td>3</td>
+                <td>Complete</td>
+                <td>8 min 9s</td>
+                <td>20 Dec 25</td>
+              </tr>
+              <tr>
+                <td>Huynh Duc Huy</td>
+                <td>4</td>
+                <td>Complete</td>
+                <td>8 min 9s</td>
+                <td>20 Dec 25</td>
+              </tr>
+            </tbody>
+          </table>
+    </div>
+
+    
+
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+
+    <!-- End: Team List -->
+
+
+  </main>
+  <!--End: Main Content -->
+
+
+  
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+
+  <script src="../js/multiple-emails-input/utils.js"></script>
+  <script src="../js/multiple-emails-input/emails-input.js"></script>
+  <script src="../js/multiple-emails-input/examples.js"></script>
+
+  <script src="../js/component.js"></script>
+
+  <script type="module" src="../public/activity/time.js"></script>
+
+</body>
+</html>
