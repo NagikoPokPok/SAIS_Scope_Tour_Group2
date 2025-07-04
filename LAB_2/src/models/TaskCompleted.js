@@ -1,7 +1,7 @@
 const { DataTypes } = require('sequelize');
 const sequelize = require('../config/database');
 
-const TasksCompleted = sequelize.define('TasksCompleted', {
+const TaskCompleted = sequelize.define('TaskCompleted', {
   id: {
     type: DataTypes.INTEGER,
     autoIncrement: true,
@@ -9,7 +9,11 @@ const TasksCompleted = sequelize.define('TasksCompleted', {
   },
   task_id: {
     type: DataTypes.INTEGER,
-    allowNull: false
+    allowNull: false,
+    references: {
+      model: 'task',
+      key: 'task_id'
+    }
   },
   user_id: {
     type: DataTypes.INTEGER,
@@ -24,10 +28,4 @@ const TasksCompleted = sequelize.define('TasksCompleted', {
   timestamps: false
 });
 
-// Định nghĩa quan hệ
-TasksCompleted.associate = function(models) {
-  TasksCompleted.belongsTo(models.Task, { foreignKey: 'task_id' });
-  TasksCompleted.belongsTo(models.User, { foreignKey: 'user_id' });
-};
-
-module.exports = TasksCompleted;
+module.exports = TaskCompleted;

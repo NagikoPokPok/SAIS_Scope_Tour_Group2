@@ -1,6 +1,8 @@
 const express = require('express');
 const cors = require('cors');
 const sequelize = require('./config/database');
+// Load associations first
+require('./models/associations');
 const teamRoutes = require('./routes/team_route');
 const subjectRoute = require('./routes/subject_route');
 const taskRoutes = require('./routes/task_route');
