@@ -19,10 +19,12 @@
   "homepage": "https://github.com/NagikoPokPok/Scope_Tour_Group2#readme",
   "dependencies": {
     "@faker-js/faker": "^9.8.0",
+    "bcryptjs": "^3.0.2",
     "cors": "^2.8.5",
     "dotenv": "^17.0.0",
     "express": "^5.1.0",
     "mysql2": "^3.14.1",
+    "nodemailer": "^7.0.4",
     "redis": "^5.5.6",
     "sequelize": "^6.37.7"
   },
