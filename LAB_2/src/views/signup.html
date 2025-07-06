@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sign up</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css" integrity="sha512-Evv84Mr4kqVGRNSgIGL/F/aIDqQb7xQ2vcrdIwxfjThSH8CSR7PBEakCr51Ck+w+/U6swU2Im1vVX0SVk9ABhg==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <link rel="stylesheet" href="../public/css/main-style.css">
+    <link rel="stylesheet" href="../public/css/signup.css">
+</head>
+
+<body>
+
+    <div id="first-login" class="first-login">
+        <div class="img-login2">
+            <img src="../public/img/login/login.png" alt="hello" class="image-descr2">
+        </div>
+    
+        <div class="login-container">
+            <div class="title">
+                <p style="font-size: 28px;" class="title1">Sign Up</p>
+                <p style="font-size: 16px;" class="title2">Let's started today </p>
+            </div>
+            <div class="form-full-name">
+                <input type="text" class="full-name" id="edt_name" placeholder="Fullname" required>
+            </div>
+            <div class="form-email">
+                <input type="email" class="email" id="edt_email" placeholder="Email" required>
+                <p id="email_error" class="error">Email không hợp lệ!</p>
+            </div>
+            
+            <div class="form-password">
+                <input type="password" class="password" id="edt_password" placeholder="Password" required>
+                <p id="password_error" class="error">Mật khẩu phải có ít nhất 6 ký tự!</p>
+            </div>
+    
+            <div class="form-password-confirm">
+                <input type="password" class="password-confirm" id="edt_confirm_password" placeholder="Password confirm" required>
+                <p id="confirm_password_error" class="error">Mật khẩu xác nhận không khớp!</p>
+            </div>
+
+
+            <!-- test otp -->
+            <!-- <div class="form-email">
+                <input type="email" class="email" id="edt_email" placeholder="Email" required>
+                <button class="btn-send-otp">Send OTP</button>
+            </div>
+            
+            <div class="otp-section" style="display: none;">
+                <input type="text" id="edt_otp" placeholder="Enter OTP">
+                <button class="btn-verify-otp">Verify OTP</button>
+            </div> -->
+            <!-- end -->
+    
+            <button id="btn-sign-up" class="btn-sign-up" type="submit">Sign up</button>
+    
+
+            <div class="sign-up">
+                <p class="label">Have an account?</p>
+                <a href="login.html" class="link-sign-up">Log in</a>
+            </div>
+        </div>
+    </div>
+    <script src="../public/activity/signup_activity.js"></script>
+</body>
+
+</html>

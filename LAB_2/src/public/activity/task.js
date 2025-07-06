@@ -100,23 +100,23 @@ document.addEventListener("DOMContentLoaded", function () {
       }
     },
 
-    async submitTask(taskId) {
-      try {
-        const response = await fetch(`http://localhost:3000/api/task/${taskId}`, {
-          method: "PUT",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ 
-            status: "completed",
-            completed_at: new Date().toISOString()
-          }),
-        });
-        if (!response.ok) throw new Error("Failed to submit task");
-        return await response.json();
-      } catch (error) {
-        console.error("Error submitting task:", error);
-        throw error;
+  async submitTask(taskId, userId = 1) { // Default userId, bạn có thể lấy từ session
+    try {
+      const response = await fetch(`http://localhost:3000/api/task/${taskId}/submit`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ user_id: userId }),
+      });
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(errorText || "Failed to submit task");
       }
-    },
+      return await response.json();
+    } catch (error) {
+      console.error("Error submitting task:", error);
+      throw error;
+    }
+  },
 
     async updateTask(taskId, updateData) {
       try {
@@ -313,27 +313,27 @@ const startDate = task.start_date ? DateUtils.formatDate(new Date(task.start_dat
   // ==================== MAIN TASK MANAGER ====================
   const TaskManager = {
     async loadTasks(pageAvailable = currentPageAvailable, pageSubmitted = currentPageSubmitted, skipCache = false) {
-  try {
-    // Thêm tham số skipCache vào URL nếu cần
-    const skipCacheParam = skipCache ? '&skipCache=true' : '';
-    
-    // Lấy available tasks
-    const { tasks: availableTasks, total: totalAvailable } = 
-      await API.fetchTasks(pageAvailable, tasksPerPage, "not_completed", skipCacheParam);
-    
-    // Lấy submitted tasks
-    const { tasks: submittedTasks, total: totalSubmitted } = 
-      await API.fetchTasks(pageSubmitted, tasksPerPage, "completed", skipCacheParam);
+      try {
+        // Thêm tham số skipCache vào URL nếu cần
+        const skipCacheParam = skipCache ? '&skipCache=true' : '';
+        
+        // Lấy available tasks
+        const { tasks: availableTasks, total: totalAvailable } = 
+          await API.fetchTasks(pageAvailable, tasksPerPage, "not_completed", skipCacheParam);
+        
+        // Lấy submitted tasks
+        const { tasks: submittedTasks, total: totalSubmitted } = 
+          await API.fetchTasks(pageSubmitted, tasksPerPage, "completed", skipCacheParam);
 
-    this.renderTasks(availableTasks, "available");
-    this.renderTasks(submittedTasks, "submitted");
+        this.renderTasks(availableTasks, "available");
+        this.renderTasks(submittedTasks, "submitted");
 
-    this.renderAvailablePagination(totalAvailable);
-    this.renderSubmittedPagination(totalSubmitted);
-  } catch (error) {
-    alert("Failed to load tasks");
-    console.error(error);
-  }
+        this.renderAvailablePagination(totalAvailable);
+        this.renderSubmittedPagination(totalSubmitted);
+      } catch (error) {
+        alert("Failed to load tasks");
+        console.error(error);
+      }
     },
 
     async searchTasks(query) {
@@ -472,7 +472,6 @@ const startDate = task.start_date ? DateUtils.formatDate(new Date(task.start_dat
 
   let pages = [];
   if (totalPages <= 1) {
-    // Không cần phân trang
     return;
   }
   if (currentPageAvailable === 1) {
@@ -701,23 +700,35 @@ const startDate = task.start_date ? DateUtils.formatDate(new Date(task.start_dat
       }
     },
 
-    async handleTaskSubmission(taskId) {
-      try {
+  async handleTaskSubmission(taskId) {
+    try {
         // Show confirmation dialog
-        const confirmed = confirm("Are you sure you want to submit this task?");
-        if (!confirmed) return;
+      const confirmed = confirm("Are you sure you want to submit this task?");
+      if (!confirmed) return;
 
-        await API.submitTask(taskId);
-        
-        // Show success message
-        alert("Task submitted successfully!");
-        
-        // Reload tasks to reflect changes
-        await this.loadTasks();
-      } catch (error) {
-        alert("Failed to submit task: " + error.message);
+      // Lấy user_id từ session hoặc localStorage, hoặc dùng default
+      const userId = localStorage.getItem('currentUserId') || 1;
+      
+      await API.submitTask(taskId, userId);
+
+      alert("Task submitted successfully!");
+      await this.loadTasks();
+    } catch (error) {
+      alert("Failed to submit task: " + error.message);
+
+      // Lưu vào localStorage nếu lỗi mạng
+      if (!navigator.onLine) {
+        let pendingSubmits = JSON.parse(localStorage.getItem("pendingTaskSubmits") || "[]");
+        pendingSubmits.push({
+          taskId,
+          userId: localStorage.getItem('currentUserId') || 1,
+          timestamp: Date.now()
+        });
+        localStorage.setItem("pendingTaskSubmits", JSON.stringify(pendingSubmits));
+        alert("Task submission saved locally. It will be retried when you are online.");
       }
-    },
+    }
+  },
 
     async handleTaskDeletion(taskId) {
       try {
@@ -1124,6 +1135,33 @@ const startDate = task.start_date ? DateUtils.formatDate(new Date(task.start_dat
     }
   }
 };
+
+function retryPendingTaskSubmits() {
+  if (!navigator.onLine) return;
+  let pendingSubmits = JSON.parse(localStorage.getItem("pendingTaskSubmits") || "[]");
+  if (pendingSubmits.length === 0) return;
+
+  pendingSubmits.sort((a, b) => a.timestamp - b.timestamp);
+
+  (async () => {
+    for (const item of pendingSubmits) {
+      try {
+        await API.submitTask(item.taskId, item.userId);
+      } catch (e) {
+        continue;
+      }
+      pendingSubmits = pendingSubmits.filter(x => x.taskId !== item.taskId);
+      localStorage.setItem("pendingTaskSubmits", JSON.stringify(pendingSubmits));
+      await TaskManager.loadTasks();
+    }
+  })();
+}
+
+// Lắng nghe sự kiện online
+window.addEventListener("online", retryPendingTaskSubmits);
+
+// Gọi thử khi khởi động
+retryPendingTaskSubmits();
 
   // ==================== INITIALIZATION ====================
   function init() {

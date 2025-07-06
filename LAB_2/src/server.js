@@ -1,12 +1,23 @@
 const express = require('express');
 const cors = require('cors');
 const sequelize = require('./config/database');
+
+// Load associations first
+require('./models/associations');
+
 const teamRoutes = require('./routes/team_route');
 const subjectRoute = require('./routes/subject_route');
 const taskRoutes = require('./routes/task_route');
+const loginRoute = require('./routes/login_route');
+const signupRoute = require('./routes/signup_route');
+const userProfileRoute = require('./routes/user_profile_route');
+
 const path = require('path');
+
+// Middlewares
 const { warmTaskCache } = require('./middlewares/cache_warming');
 const redisClient = require('./utils/redisClient');
+
 
 const app = express();
 const PORT = 3000; // Express server port
@@ -35,7 +46,9 @@ app.use(express.static(path.join(__dirname, 'public')));
 app.use('/api/team', teamRoutes);
 app.use('/api/subject', subjectRoute);
 app.use('/api/task', taskRoutes);
-
+app.use("/api/login", loginRoute);
+app.use("/api/signup", signupRoute);
+app.use("/api/user-profile", userProfileRoute);
 
 // 404 Handler
 app.use((req, res, next) => {

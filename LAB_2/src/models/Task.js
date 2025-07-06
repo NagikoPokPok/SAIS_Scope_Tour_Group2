@@ -45,12 +45,4 @@ const Task = sequelize.define('Task', {
   timestamps: false
 });
 
-// Định nghĩa quan hệ
-Task.associate = function(models) {
-  Task.belongsTo(models.User, { foreignKey: 'user_id' });
-  Task.belongsTo(models.Team, { foreignKey: 'team_id' });
-  Task.belongsTo(models.Subject, { foreignKey: 'subject_id' });
-  Task.hasMany(models.TasksCompleted, { foreignKey: 'task_id' });
-};
-
 module.exports = Task;
