@@ -54,9 +54,6 @@ document.addEventListener('DOMContentLoaded', function () {
       }
   }
 
-
-  
-
   // Fetch all team
   async function fetchAllTeams() {
       const teamList = document.getElementById('teamList');
@@ -73,8 +70,7 @@ document.addEventListener('DOMContentLoaded', function () {
               <img src="../public/img/main-img/error-loading.png" alt="error" class="img-status">
               <span class="text-status">Error loading</span>
           </div>
-          `            
-          ;
+          `;
       }
   }
 
@@ -144,95 +140,95 @@ document.addEventListener('DOMContentLoaded', function () {
 
   document.getElementById('updateTeamForm').addEventListener('submit', updateTeam);
 
-      // Search teams based on query
-      async function searchTeams(searchQuery) {
-          const teamList = document.getElementById('teamList');
-          teamList.innerHTML = '<span>Searching...</span>';
-          try {
-              const url = `http://localhost:3000/api/team?search=${encodeURIComponent(searchQuery.trim())}`;
-              const response = await fetch(url);
-              if (!response.ok) throw new Error('Network response was not ok');
-              const data = await response.json();
-              renderTeams(data.teams, true); // Pass isSearch=true for search-specific messaging
-          } catch (error) {
-              console.error('Error searching teams:', error);
-              teamList.innerHTML = '<span>Error searching teams</span>';
-          }
+  // Search teams based on query
+  async function searchTeams(searchQuery) {
+      const teamList = document.getElementById('teamList');
+      teamList.innerHTML = '<span>Searching...</span>';
+      try {
+          const url = `http://localhost:3000/api/team?search=${encodeURIComponent(searchQuery.trim())}`;
+          const response = await fetch(url);
+          if (!response.ok) throw new Error('Network response was not ok');
+          const data = await response.json();
+          renderTeams(data.teams, true); // Pass isSearch=true for search-specific messaging
+      } catch (error) {
+          console.error('Error searching teams:', error);
+          teamList.innerHTML = '<span>Error searching teams</span>';
       }
-  
-      // Debounce helper to limit API calls
-      function debounce(func, delay) {
-          let timeout;
-          return (...args) => {
-              clearTimeout(timeout);
-              timeout = setTimeout(() => func(...args), delay);
-          };
-      }
-  
-      // Setup search functionality
-      const searchInput = document.getElementById('searchTeam');
-      if (searchInput) {
-          const debouncedSearch = debounce(query => {
-              const trimmedQuery = query.trim();
-              if (trimmedQuery) {
-                  searchTeams(trimmedQuery); // Search when there's a query
-              } else {
-                  fetchAllTeams(); // Fetch all teams only when search is cleared
-              }
-          }, 300);
-  
-          searchInput.addEventListener('input', () => {
-              debouncedSearch(searchInput.value);
-          });
-  
-          searchInput.addEventListener('keydown', (e) => {
-              if (e.key === 'Enter') {
-                  e.preventDefault();
-                  const query = searchInput.value.trim();
-                  if (query) {
-                      searchTeams(query); // Immediate search on Enter
-                  } else {
-                      fetchAllTeams(); // Immediate fetch all on Enter when empty
-                  }
-              }
-          });
-      }
+  }
 
-    const createTeamForm = document.getElementById('createTeamForm');
-    if (createTeamForm) {
-        createTeamForm.addEventListener('submit', async (event) => {
-            event.preventDefault();
-            const teamName = document.getElementById('modal-team-name').value.trim();
-            if (!teamName) {
-                alert('Team name is required.');
-                return;
-            }
-            try {
-                const response = await fetch('http://localhost:3000/api/team', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ teamName })
-                });
-                const result = await response.json();
-                if (response.ok) {
-                    alert(result.message);
-                    const currentQuery = searchInput.value.trim();
-                    if (currentQuery) {
-                        searchTeams(currentQuery); // Refresh with current search query
-                    } else {
-                        fetchAllTeams(); // Refresh full list if no search active
-                    }
-                    bootstrap.Modal.getInstance(document.getElementById('reg-modal')).hide();
-                    createTeamForm.reset();
-                } else {
-                    alert(result.message || 'Failed to create team.');
-                }
-            } catch (error) {
-                console.error('Error creating team:', error);
-                alert('An error occurred while creating the team.');
-            }
-        });
-    }
+  // Debounce helper to limit API calls
+  function debounce(func, delay) {
+      let timeout;
+      return (...args) => {
+          clearTimeout(timeout);
+          timeout = setTimeout(() => func(...args), delay);
+      };
+  }
+
+  // Setup search functionality
+  const searchInput = document.getElementById('searchTeam');
+  if (searchInput) {
+      const debouncedSearch = debounce(query => {
+          const trimmedQuery = query.trim();
+          if (trimmedQuery) {
+              searchTeams(trimmedQuery); // Search when there's a query
+          } else {
+              fetchAllTeams(); // Fetch all teams only when search is cleared
+          }
+      }, 300);
+
+      searchInput.addEventListener('input', () => {
+          debouncedSearch(searchInput.value);
+      });
+
+      searchInput.addEventListener('keydown', (e) => {
+          if (e.key === 'Enter') {
+              e.preventDefault();
+              const query = searchInput.value.trim();
+              if (query) {
+                  searchTeams(query); // Immediate search on Enter
+              } else {
+                  fetchAllTeams(); // Immediate fetch all on Enter when empty
+              }
+          }
+      });
+  }
+
+  const createTeamForm = document.getElementById('createTeamForm');
+  if (createTeamForm) {
+      createTeamForm.addEventListener('submit', async (event) => {
+          event.preventDefault();
+          const teamName = document.getElementById('modal-team-name').value.trim();
+          if (!teamName) {
+              alert('Team name is required.');
+              return;
+          }
+          try {
+              const response = await fetch('http://localhost:3000/api/team', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({ teamName })
+              });
+              const result = await response.json();
+              if (response.ok) {
+                  alert(result.message);
+                  const currentQuery = searchInput.value.trim();
+                  if (currentQuery) {
+                      searchTeams(currentQuery); // Refresh with current search query
+                  } else {
+                      fetchAllTeams(); // Refresh full list if no search active
+                  }
+                  bootstrap.Modal.getInstance(document.getElementById('reg-modal')).hide();
+                  createTeamForm.reset();
+              } else {
+                  alert(result.message || 'Failed to create team.');
+              }
+          } catch (error) {
+              console.error('Error creating team:', error);
+              alert('An error occurred while creating the team.');
+          }
+      });
+  }
 
   fetchAllTeams();
 });
