@@ -1,4 +1,4 @@
-const redisClient = require('../utils/redisClient');
+const redisClient = require('../utils/redis_client');
 // Import models with associations
 require('../models/associations');
 const Task = require('../models/Task');

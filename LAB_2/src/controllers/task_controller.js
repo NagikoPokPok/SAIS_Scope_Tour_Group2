@@ -3,7 +3,8 @@ const { Op } = require('sequelize');
 require('../models/associations');
 const Task = require('../models/Task');
 const TaskCompleted = require('../models/TaskCompleted');
-const redisClient = require('../utils/redisClient');
+const redisClient = require('../utils/redis_client');
+const taskQueueService = require('../services/task_queue_service');
 
 // Cache configuration
 const CACHE_TTL = 3600; // 1 hour cache expiration
@@ -23,50 +24,49 @@ exports.createTask = async (req, res) => {
     console.log("Received payload:", req.body);
     
     if (!subject_id || !title) {
-      return res.status(400).json({ error: 'subject_id and title are required' });
+      return res.status(400).json({ error: 'Subject ID and title are required' });
     }
     
-    const newTask = await Task.create({
+    const taskData = {
       user_id,
       team_id,
       subject_id,
       title,
       description,
       start_date,
-      end_date,
-      status: 'pending'
-    });
+      end_date
+    };
     
-    // Invalidate relevant cache keys when new task is created
-    if (redisClient.isReady) {
-      console.log('⏳ Invalidating cache after adding new task...');
+    // Try to queue the task creation
+    const queued = await taskQueueService.queueTaskCreation(taskData);
+    
+    if (queued) {
+      // Task queued successfully
+      return res.status(202).json({
+        message: 'Task creation queued successfully! It will be processed shortly.',
+        status: 'queued'
+      });
+    } else {
+      // Fallback to direct creation if queue is not available
+      console.log('⚠️ Queue not available, creating task directly');
+      const newTask = await Task.create({
+        ...taskData,
+        status: 'pending'
+      });
       
-      try {
-        const listPattern = `tasks:${subject_id}:${team_id}:*`;
-        const countPattern = `tasks:count:${subject_id}:${team_id}:*`;
-        
-        let deletedCount = 0;
-        
-        for await (const key of redisClient.scanIterator(listPattern)) {
+      // Invalidate cache directly
+      if (redisClient.isReady) {
+        const pattern = `tasks:${subject_id}:${team_id}:*`;
+        for await (const key of redisClient.scanIterator(pattern)) {
           await redisClient.del(key);
-          deletedCount++;
         }
-        
-        for await (const key of redisClient.scanIterator(countPattern)) {
-          await redisClient.del(key);
-          deletedCount++;
-        }
-        
-        console.log(`✅ Total ${deletedCount} cache keys invalidated successfully`);
-      } catch (cacheError) {
-        console.error("❌ Cache invalidation error:", cacheError);
       }
+      
+      return res.status(201).json({
+        message: 'Task created successfully!',
+        data: newTask
+      });
     }
-    
-    return res.status(201).json({
-      message: 'Task created successfully!',
-      data: newTask
-    });
   } catch (error) {
     console.error("Error creating task:", error);
     return res.status(500).json({ error: error.message });
@@ -77,65 +77,62 @@ exports.createTask = async (req, res) => {
 exports.submitTask = async (req, res) => {
   try {
     const { id } = req.params;
-    const { user_id } = req.body; // user_id của người submit
+    const { user_id } = req.body;
     
-    // Kiểm tra task có tồn tại không
-    const task = await Task.findByPk(id);
-    if (!task) {
-      return res.status(404).json({ error: 'Task not found' });
-    }
+    // Try to queue the task submission
+    const queued = await taskQueueService.queueTaskSubmission(id, user_id);
     
-    // Kiểm tra xem task đã được submit chưa
-    const existingSubmission = await TaskCompleted.findOne({
-      where: { task_id: id, user_id: user_id }
-    });
-    
-    if (existingSubmission) {
-      return res.status(400).json({ error: 'Task already submitted by this user' });
-    }
-    
-    // Tạo bản ghi trong TaskCompleted
-    const taskCompleted = await TaskCompleted.create({
-      task_id: id,
-      user_id: user_id,
-      completed_date: new Date()
-    });
-    
-    // Invalidate cache
-    if (redisClient.isReady) {
-      try {
-        console.log(`⏳ Invalidating cache after submitting task ${id}...`);
-        
-        const listPattern = `tasks:${task.subject_id}:${task.team_id}:*`;
-        const countPattern = `tasks:count:${task.subject_id}:${task.team_id}:*`;
-        
-        let deletedCount = 0;
-        
-        for await (const key of redisClient.scanIterator(listPattern)) {
-          await redisClient.del(key);
-          deletedCount++;
-        }
-        
-        for await (const key of redisClient.scanIterator(countPattern)) {
-          await redisClient.del(key);
-          deletedCount++;
-        }
-        
-        console.log(`✅ Total ${deletedCount} cache keys invalidated successfully for task submission`);
-      } catch (cacheError) {
-        console.error("❌ Cache invalidation error:", cacheError);
+    if (queued) {
+      // Task submission queued successfully
+      return res.status(202).json({
+        message: 'Task submission queued successfully! It will be processed shortly.',
+        status: 'queued'
+      });
+    } else {
+      // Fallback to direct submission if queue is not available
+      console.log('⚠️ Queue not available, submitting task directly');
+      
+      // Check if task exists
+      const task = await Task.findByPk(id);
+      if (!task) {
+        return res.status(404).json({ error: 'Task not found' });
       }
+      
+      // Check if already submitted
+      const existingSubmission = await TaskCompleted.findOne({
+        where: { task_id: id, user_id: user_id }
+      });
+      
+      if (existingSubmission) {
+        return res.status(400).json({ error: 'Task already submitted by this user' });
+      }
+      
+      // Create submission
+      const taskCompleted = await TaskCompleted.create({
+        task_id: id,
+        user_id: user_id,
+        completed_date: new Date()
+      });
+      
+      // Invalidate cache directly
+      if (redisClient.isReady) {
+        const pattern = `tasks:${task.subject_id}:${task.team_id}:*`;
+        for await (const key of redisClient.scanIterator(pattern)) {
+          await redisClient.del(key);
+        }
+      }
+      
+      return res.status(201).json({
+        message: 'Task submitted successfully!',
+        data: taskCompleted
+      });
     }
-    
-    return res.status(201).json({
-      message: 'Task submitted successfully!',
-      data: taskCompleted
-    });
   } catch (error) {
     console.error("Error submitting task:", error);
     return res.status(500).json({ error: error.message });
   }
 };
+
 
 // Fetch tasks
 exports.getTasks = async (req, res) => {
@@ -360,51 +357,40 @@ exports.getTaskById = async (req, res) => {
 exports.updateTask = async (req, res) => {
   try {
     const { id } = req.params;
-    const { title, description, start_date, end_date } = req.body;
-    const task = await Task.findByPk(id);
-    if (!task) return res.status(404).json({ error: 'Task not found' });
+    const updateData = req.body;
     
-    const updateData = {};
-    if (title !== undefined) updateData.title = title;
-    if (description !== undefined) updateData.description = description;
-    if (start_date !== undefined) updateData.start_date = start_date ? new Date(start_date) : null;
-    if (end_date !== undefined) updateData.end_date = end_date ? new Date(end_date) : null;
+    // Try to queue the task update
+    const queued = await taskQueueService.queueTaskUpdate(id, updateData);
     
-    await task.update(updateData);
-    
-    // Invalidate caches
-    if (redisClient.isReady) {
-      try {
-        console.log(`⏳ Invalidating cache after updating task ${id}...`);
-        
-        const taskCacheKey = CACHE_KEYS.TASK_DETAIL(id);
-        await redisClient.del(taskCacheKey);
-        
-        const listPattern = `tasks:${task.subject_id}:${task.team_id}:*`;
-        const countPattern = `tasks:count:${task.subject_id}:${task.team_id}:*`;
-        
-        let deletedCount = 0;
-        
-        for await (const key of redisClient.scanIterator(listPattern)) {
-          await redisClient.del(key);
-          deletedCount++;
-        }
-        
-        for await (const key of redisClient.scanIterator(countPattern)) {
-          await redisClient.del(key);
-          deletedCount++;
-        }
-        
-        console.log(`✅ Total ${deletedCount} cache keys invalidated successfully for task update`);
-      } catch (cacheError) {
-        console.error("❌ Cache invalidation error:", cacheError);
+    if (queued) {
+      return res.status(202).json({
+        message: 'Task update queued successfully! It will be processed shortly.',
+        status: 'queued'
+      });
+    } else {
+      // Fallback to direct update
+      console.log('⚠️ Queue not available, updating task directly');
+      
+      const task = await Task.findByPk(id);
+      if (!task) {
+        return res.status(404).json({ error: 'Task not found' });
       }
+      
+      await task.update(updateData);
+      
+      // Invalidate cache directly
+      if (redisClient.isReady) {
+        const pattern = `tasks:${task.subject_id}:${task.team_id}:*`;
+        for await (const key of redisClient.scanIterator(pattern)) {
+          await redisClient.del(key);
+        }
+      }
+      
+      return res.status(200).json({
+        message: 'Task updated successfully!',
+        data: task
+      });
     }
-    
-    return res.status(200).json({
-      message: 'Task updated successfully',
-      data: task
-    });
   } catch (error) {
     console.error("Error updating task:", error);
     return res.status(500).json({ error: error.message });
@@ -415,49 +401,39 @@ exports.updateTask = async (req, res) => {
 exports.deleteTask = async (req, res) => {
   try {
     const { id } = req.params;
-    const task = await Task.findByPk(id);
-    if (!task) return res.status(404).json({ error: 'Task not found' });
     
-    const { team_id, subject_id } = task;
+    // Try to queue the task deletion
+    const queued = await taskQueueService.queueTaskDeletion(id);
     
-    // Xóa task completion record nếu có
-    await TaskCompleted.destroy({
-      where: { task_id: id }
-    });
-    
-    // Xóa task
-    await task.destroy();
-    
-    // Invalidate caches
-    if (redisClient.isReady) {
-      try {
-        console.log(`⏳ Invalidating cache after deleting task ${id}...`);
-        
-        const taskCacheKey = CACHE_KEYS.TASK_DETAIL(id);
-        await redisClient.del(taskCacheKey);
-        
-        const listPattern = `tasks:${subject_id}:${team_id}:*`;
-        const countPattern = `tasks:count:${subject_id}:${team_id}:*`;
-        
-        let deletedCount = 0;
-        
-        for await (const key of redisClient.scanIterator(listPattern)) {
-          await redisClient.del(key);
-          deletedCount++;
-        }
-        
-        for await (const key of redisClient.scanIterator(countPattern)) {
-          await redisClient.del(key);
-          deletedCount++;
-        }
-        
-        console.log(`✅ Total ${deletedCount} cache keys invalidated successfully for task deletion`);
-      } catch (cacheError) {
-        console.error("❌ Cache invalidation error:", cacheError);
+    if (queued) {
+      return res.status(202).json({
+        message: 'Task deletion queued successfully! It will be processed shortly.',
+        status: 'queued'
+      });
+    } else {
+      // Fallback to direct deletion
+      console.log('⚠️ Queue not available, deleting task directly');
+      
+      const task = await Task.findByPk(id);
+      if (!task) {
+        return res.status(404).json({ error: 'Task not found' });
       }
+      
+      const { team_id, subject_id } = task;
+      await task.destroy();
+      
+      // Invalidate cache directly
+      if (redisClient.isReady) {
+        const pattern = `tasks:${subject_id}:${team_id}:*`;
+        for await (const key of redisClient.scanIterator(pattern)) {
+          await redisClient.del(key);
+        }
+      }
+      
+      return res.status(200).json({
+        message: 'Task deleted successfully!'
+      });
     }
-    
-    return res.status(200).json({ message: "Task deleted successfully" });
   } catch (error) {
     console.error("Error deleting task:", error);
     return res.status(500).json({ error: error.message });
