@@ -19,5 +19,17 @@ document.addEventListener('DOMContentLoaded', function () {
     // Update immediately, then every second
     updateTime();
     setInterval(updateTime, 1000);
+
+    // // Lấy tên user và cập nhật vào giao diện
+    // fetch('/api/user/profile')
+    //   .then(res => res.json())
+    //   .then(data => {
+    //       if (data && data.name) {
+    //       document.getElementById('userName').textContent = data.name;
+    //       }
+    //   })
+    //   .catch(() => {
+    //       // Có thể giữ nguyên tên mặc định hoặc xử lý lỗi nếu muốn
+    //   });
   });
   

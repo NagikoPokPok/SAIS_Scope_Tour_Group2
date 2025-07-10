@@ -39,7 +39,7 @@ class UserService {
     static async createUser(email, name, password) {
         try {
             password = await bcrypt.hash(password, 10); // Mã hóa mật khẩu
-            return await User.create({email, name, password});
+            return await User.create({email, user_name: name, password});
         } catch (error) {
             console.error("Lỗi khi tạo người dùng:", error);
             throw error;
