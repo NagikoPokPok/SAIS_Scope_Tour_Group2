@@ -16,7 +16,8 @@ const path = require('path');
 
 // Middlewares
 const { warmTaskCache } = require('./middlewares/cache_warming');
-const redisClient = require('./utils/redisClient');
+const redisClient = require('./utils/redis_client');
+const rabbitmqClient = require('./utils/rabbitmq_client');
 
 
 const app = express();
@@ -61,13 +62,20 @@ app.use((err, req, res, next) => {
   res.status(500).json({ error: 'Something went wrong!' });
 });
 
-sequelize.authenticate()
-  .then(() => {
+const initializeServices = async () => {
+  try {
+    // Connect to database
+    await sequelize.authenticate();
     console.log('✅ Database connection established.');
-  })
-  .catch(err => {
-    console.error('❌ Unable to connect to the database:', err);
-  });
+    
+    // Connect to RabbitMQ
+    await rabbitmqClient.connect();
+    console.log('✅ RabbitMQ connection established.');
+    
+  } catch (err) {
+    console.error('❌ Service initialization failed:', err);
+  }
+};
 
 // When Redis is ready, warm up cache for important teams and subjects
 redisClient.on('connect', async () => {
@@ -105,8 +113,7 @@ setInterval(async () => {
 // Sync Database & Start Server
 const startServer = async () => {
   try {
-    await sequelize.authenticate();
-    console.log('Database connected successfully');
+    await initializeServices();
     await sequelize.sync({ alter: true });
     console.log('Database synced successfully');
     

@@ -3,8 +3,11 @@
   "version": "1.0.0",
   "description": "Bùi Thành Nghĩa\r Trần Quang Hiếu\r Huỳnh Đức Huy\r Võ Hùng Cường",
   "main": "index.js",
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "scripts": {
+    "start": "node LAB_2/src/server.js",
+    "worker": "node LAB_2/src/queue_worker.js",
+    "dev": "nodemon LAB_2/src/server.js",
+    "worker:dev": "nodemon LAB_2/src/queue_worker.js"
   },
   "repository": {
     "type": "git",
@@ -19,6 +22,7 @@
   "homepage": "https://github.com/NagikoPokPok/Scope_Tour_Group2#readme",
   "dependencies": {
     "@faker-js/faker": "^9.8.0",
+    "amqplib": "^0.10.8",
     "bcryptjs": "^3.0.2",
     "cors": "^2.8.5",
     "dotenv": "^17.0.0",
