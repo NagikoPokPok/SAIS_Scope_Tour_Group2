@@ -40,6 +40,17 @@ document.addEventListener("DOMContentLoaded", function () {
 
   console.log("📋 Page params:", { subjectId, teamId, subjectName });
 
+  // Update page title with subject name
+  if (subjectName) {
+    const subjectNameSpan = document.querySelector('.subject-name');
+    if (subjectNameSpan) {
+      subjectNameSpan.textContent = decodeURIComponent(subjectName);
+    }
+    
+    // Update page title
+    document.title = `Tasks - ${decodeURIComponent(subjectName)} | Scope Tour`;
+  }
+
   // Initialize WebSocket với debug chi tiết
   try {
     if (typeof io !== 'undefined') {
@@ -174,11 +185,13 @@ document.addEventListener("DOMContentLoaded", function () {
   }
 },
 
-    async searchTasks(query) {
+    async searchTasks(query, status = "", page = 1, limit = tasksPerPage) {
       try {
-        const response = await fetch(
-          `http://localhost:3000/api/task?subjectId=${subjectId}&teamId=${teamId}&search=${encodeURIComponent(query)}`
-        );
+        let url = `http://localhost:3000/api/task?subjectId=${subjectId}&teamId=${teamId}&page=${page}&limit=${limit}`;
+        if (query) url += `&search=${encodeURIComponent(query)}`;
+        if (status) url += `&status=${status}`;
+        
+        const response = await fetch(url);
         if (!response.ok) throw new Error("Failed to search tasks");
         return await response.json();
       } catch (error) {
@@ -419,6 +432,15 @@ const startDate = task.start_date ? DateUtils.formatDate(new Date(task.start_dat
   const TaskManager = {
     async loadTasks(pageAvailable = currentPageAvailable, pageSubmitted = currentPageSubmitted, skipCache = false) {
       try {
+        // Kiểm tra nếu đang trong search mode thì không load tasks bình thường
+        if (SearchManager.currentSearchQuery && !skipCache) {
+          console.log('🔍 In search mode, skipping normal task load');
+          return;
+        }
+
+        // Hide search UI elements khi load tasks bình thường
+        SearchManager.hideSearchMode();
+
         // Thêm tham số skipCache vào URL nếu cần
         const skipCacheParam = skipCache ? '&skipCache=true' : '';
         
@@ -436,8 +458,8 @@ const startDate = task.start_date ? DateUtils.formatDate(new Date(task.start_dat
         this.renderAvailablePagination(totalAvailable);
         this.renderSubmittedPagination(totalSubmitted);
       } catch (error) {
-        alert("Failed to load tasks");
-        console.error(error);
+        console.error("Failed to load tasks:", error);
+        showNotification("Failed to load tasks: " + error.message, 'danger');
       }
     },
 
@@ -560,10 +582,15 @@ const startDate = task.start_date ? DateUtils.formatDate(new Date(task.start_dat
     const btn = document.createElement("button");
     btn.textContent = page;
     btn.className = `btn btn-sm ${page === currentPageAvailable ? 'btn-primary' : 'btn-outline-primary'}`;
-    btn.onclick = () => {
+    btn.onclick = async () => {
       if (page !== currentPageAvailable) {
         currentPageAvailable = page;
-        TaskManager.loadTasks(currentPageAvailable, currentPageSubmitted);
+        // Check if searching
+        if (SearchManager.currentSearchQuery) {
+          await SearchManager.performSearch();
+        } else {
+          await TaskManager.loadTasks(currentPageAvailable, currentPageSubmitted);
+        }
       }
     };
     container.appendChild(btn);
@@ -573,28 +600,44 @@ const startDate = task.start_date ? DateUtils.formatDate(new Date(task.start_dat
   document.getElementById("pageInfo").textContent = `${currentPageAvailable} / ${totalPages}`;
 
    // GÁN LẠI SỰ KIỆN CHO NÚT ĐIỀU HƯỚNG
-  document.getElementById("firstPageBtn").onclick = () => {
+  document.getElementById("firstPageBtn").onclick = async () => {
     if (currentPageAvailable > 1) {
       currentPageAvailable = 1;
-      TaskManager.loadTasks(currentPageAvailable, currentPageSubmitted);
+      if (SearchManager.currentSearchQuery) {
+        await SearchManager.performSearch();
+      } else {
+        await TaskManager.loadTasks(currentPageAvailable, currentPageSubmitted);
+      }
     }
   };
-  document.getElementById("prevPageBtn").onclick = () => {
+  document.getElementById("prevPageBtn").onclick = async () => {
     if (currentPageAvailable > 1) {
       currentPageAvailable -= 1;
-      TaskManager.loadTasks(currentPageAvailable, currentPageSubmitted);
+      if (SearchManager.currentSearchQuery) {
+        await SearchManager.performSearch();
+      } else {
+        await TaskManager.loadTasks(currentPageAvailable, currentPageSubmitted);
+      }
     }
   };
-  document.getElementById("nextPageBtn").onclick = () => {
+  document.getElementById("nextPageBtn").onclick = async () => {
     if (currentPageAvailable < totalPages) {
       currentPageAvailable += 1;
-      TaskManager.loadTasks(currentPageAvailable, currentPageSubmitted);
+      if (SearchManager.currentSearchQuery) {
+        await SearchManager.performSearch();
+      } else {
+        await TaskManager.loadTasks(currentPageAvailable, currentPageSubmitted);
+      }
     }
   };
-  document.getElementById("lastPageBtn").onclick = () => {
+  document.getElementById("lastPageBtn").onclick = async () => {
     if (currentPageAvailable < totalPages) {
       currentPageAvailable = totalPages;
-      TaskManager.loadTasks(currentPageAvailable, currentPageSubmitted);
+      if (SearchManager.currentSearchQuery) {
+        await SearchManager.performSearch();
+      } else {
+        await TaskManager.loadTasks(currentPageAvailable, currentPageSubmitted);
+      }
     }
   };
 },
@@ -862,44 +905,258 @@ const startDate = task.start_date ? DateUtils.formatDate(new Date(task.start_dat
 
   // ==================== SEARCH FUNCTIONALITY ====================
   const SearchManager = {
-    init() {
-      const searchInput = document.getElementById("searchSubject");
-      if (!searchInput) return;
+  currentSearchQuery: "",
+  isSearching: false,
 
-      const debouncedSearch = this.debounce((query) => {
-        const trimmed = query.trim();
-        if (trimmed) {
-          TaskManager.searchTasks(trimmed);
-        } else {
-          TaskManager.loadTasks();
-        }
-      }, 300);
+  init() {
+    const searchInput = document.getElementById("searchSubject");
+    if (!searchInput) return;
 
-      searchInput.addEventListener("input", () => {
-        debouncedSearch(searchInput.value);
-      });
+    // Clear search button
+    const clearSearchBtn = this.createClearSearchButton(searchInput);
+    
+    const debouncedSearch = this.debounce(async (query) => {
+      this.currentSearchQuery = query.trim();
+      await this.performSearch();
+    }, 300); // Giảm debounce time
 
-      searchInput.addEventListener("keydown", (e) => {
-        if (e.key === "Enter") {
-          e.preventDefault();
-          const trimmed = searchInput.value.trim();
-          if (trimmed) {
-            TaskManager.searchTasks(trimmed);
-          } else {
-            TaskManager.loadTasks();
-          }
-        }
-      });
-    },
+    searchInput.addEventListener("input", (e) => {
+      const query = e.target.value;
+      
+      // Show/hide clear button
+      if (query.length > 0) {
+        clearSearchBtn.style.display = 'block';
+      } else {
+        clearSearchBtn.style.display = 'none';
+      }
 
-    debounce(fn, delay) {
-      let handle = null;
-      return (...args) => {
-        clearTimeout(handle);
-        handle = setTimeout(() => fn(...args), delay);
-      };
+      // Nếu query rỗng, clear search ngay lập tức
+      if (query.trim() === "") {
+        this.clearSearchImmediate();
+        return;
+      }
+
+      debouncedSearch(query);
+    });
+
+    searchInput.addEventListener("keydown", async (e) => {
+      if (e.key === "Enter") {
+        e.preventDefault();
+        this.currentSearchQuery = searchInput.value.trim();
+        await this.performSearch();
+      }
+      
+      if (e.key === "Escape") {
+        this.clearSearch();
+      }
+    });
+  },
+
+  createClearSearchButton(searchInput) {
+    // Check if clear button already exists
+    let clearBtn = document.getElementById("clearSearchBtn");
+    if (clearBtn) return clearBtn;
+
+    // Create clear button
+    clearBtn = document.createElement("button");
+    clearBtn.id = "clearSearchBtn";
+    clearBtn.type = "button";
+    clearBtn.className = "search-clear-btn";
+    clearBtn.style.cssText = `
+      position: absolute;
+      right: 40px;
+      top: 50%;
+      transform: translateY(-50%);
+      border: none;
+      background: none;
+      font-size: 16px;
+      cursor: pointer;
+      display: none;
+      z-index: 10;
+      color: #6c757d;
+      padding: 4px;
+    `;
+    clearBtn.innerHTML = '<i class="fas fa-times"></i>';
+    clearBtn.title = "Clear search";
+
+    // Add click handler
+    clearBtn.addEventListener("click", (e) => {
+      e.preventDefault();
+      e.stopPropagation();
+      this.clearSearch();
+    });
+
+    // Insert after search input
+    const searchContainer = searchInput.parentElement;
+    searchContainer.style.position = 'relative';
+    searchContainer.appendChild(clearBtn);
+
+    return clearBtn;
+  },
+
+  async performSearch() {
+    if (this.isSearching) return;
+    this.isSearching = true;
+
+    try {
+      if (!this.currentSearchQuery) {
+        this.clearSearchImmediate();
+        return;
+      }
+
+      this.showSearchMode();
+      console.log('🔍 Searching for:', this.currentSearchQuery);
+
+      // Search in both available and submitted tasks
+      const [availableResults, submittedResults] = await Promise.all([
+        API.searchTasks(this.currentSearchQuery, "not_completed", currentPageAvailable),
+        API.searchTasks(this.currentSearchQuery, "completed", currentPageSubmitted)
+      ]);
+
+      // Render results
+      TaskManager.renderTasks(availableResults.tasks, "available");
+      TaskManager.renderTasks(submittedResults.tasks, "submitted");
+
+      // Update pagination
+      TaskManager.renderAvailablePagination(availableResults.total);
+      TaskManager.renderSubmittedPagination(submittedResults.total);
+
+      // Show search results info
+      this.showSearchResults(availableResults.total + submittedResults.total);
+
+    } catch (error) {
+      console.error("Search failed:", error);
+      showNotification("Search failed: " + error.message, 'danger');
+    } finally {
+      this.isSearching = false;
     }
-  };
+  },
+
+  clearSearchImmediate() {
+    this.currentSearchQuery = "";
+    this.hideSearchMode();
+    
+    // Reset to page 1 and reload normal tasks immediately
+    currentPageAvailable = 1;
+    currentPageSubmitted = 1;
+    TaskManager.loadTasks(1, 1, true);
+  },
+
+  clearSearch() {
+    const searchInput = document.getElementById("searchSubject");
+    const clearBtn = document.getElementById("clearSearchBtn");
+    
+    if (searchInput) {
+      searchInput.value = "";
+      searchInput.focus();
+    }
+    
+    if (clearBtn) {
+      clearBtn.style.display = 'none';
+    }
+
+    this.clearSearchImmediate();
+  },
+
+  showSearchMode() {
+    // Hide search indicator if showing
+    this.hideSearchIndicator();
+    
+    // Add search mode class to main container
+    const taskContainer = document.getElementById("task");
+    if (taskContainer) {
+      taskContainer.classList.add("search-mode");
+    }
+  },
+
+  hideSearchMode() {
+    // Remove search mode class
+    const taskContainer = document.getElementById("task");
+    if (taskContainer) {
+      taskContainer.classList.remove("search-mode");
+    }
+    
+    // Hide all search-related elements
+    this.hideSearchIndicator();
+    this.hideSearchResults();
+  },
+
+  showSearchIndicator() {
+    // Create or show search indicator (minimal)
+    let indicator = document.getElementById("searchIndicator");
+    if (!indicator) {
+      indicator = document.createElement("div");
+      indicator.id = "searchIndicator";
+      indicator.className = "search-indicator";
+      indicator.innerHTML = `
+        <div class="d-flex align-items-center justify-content-center py-2">
+          <div class="spinner-border spinner-border-sm me-2" role="status"></div>
+          <span>Searching...</span>
+        </div>
+      `;
+      
+      // Insert before accordion
+      const accordion = document.querySelector(".accordion");
+      if (accordion) {
+        accordion.parentElement.insertBefore(indicator, accordion);
+      }
+    } else {
+      indicator.style.display = 'block';
+    }
+  },
+
+  hideSearchIndicator() {
+    const indicator = document.getElementById("searchIndicator");
+    if (indicator) {
+      indicator.style.display = 'none';
+    }
+  },
+
+  showSearchResults(totalFound) {
+    // Create or update search results info (more compact)
+    let resultsInfo = document.getElementById("searchResultsInfo");
+    if (!resultsInfo) {
+      resultsInfo = document.createElement("div");
+      resultsInfo.id = "searchResultsInfo";
+      resultsInfo.className = "search-results-info";
+      
+      // Insert before accordion
+      const accordion = document.querySelector(".accordion");
+      if (accordion) {
+        accordion.parentElement.insertBefore(resultsInfo, accordion);
+      }
+    }
+
+    resultsInfo.innerHTML = `
+      <div class="alert alert-info d-flex justify-content-between align-items-center mb-3">
+        <span>
+          <i class="fas fa-search me-2"></i>
+          Found <strong>${totalFound}</strong> task(s) matching "<em>${this.currentSearchQuery}</em>"
+        </span>
+        <button type="button" class="btn btn-sm btn-outline-info" onclick="SearchManager.clearSearch()">
+          <i class="fas fa-times me-1"></i>Clear
+        </button>
+      </div>
+    `;
+    resultsInfo.style.display = 'block';
+  },
+
+  hideSearchResults() {
+    const resultsInfo = document.getElementById("searchResultsInfo");
+    if (resultsInfo) {
+      resultsInfo.style.display = 'none';
+    }
+  },
+
+  debounce(fn, delay) {
+    let handle = null;
+    return (...args) => {
+      clearTimeout(handle);
+      handle = setTimeout(() => fn(...args), delay);
+    };
+  }
+};
+
 
   // ==================== FORM HANDLERS ====================
   const FormManager = {
