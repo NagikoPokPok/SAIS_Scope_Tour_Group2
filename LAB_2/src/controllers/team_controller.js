@@ -104,9 +104,9 @@ exports.fetchTeams = async (req, res) => {
         });
 
         const teams = Array.from(allTeamsMap.values());
-        console.log('All teams:', teams); // Debug log
-        console.log('createdTeams:', createdTeams); // Debug log
-        console.log('memberTeams:', memberTeams); // Debug log
+        // console.log('All teams:', teams); // Debug log
+        // console.log('createdTeams:', createdTeams); // Debug log
+        // console.log('memberTeams:', memberTeams); // Debug log
         return res.status(200).json({ teams });
     } catch (error) {
         console.error('Error fetching teams:', error);
