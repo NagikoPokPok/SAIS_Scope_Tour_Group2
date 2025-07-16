@@ -915,7 +915,7 @@ const startDate = task.start_date ? DateUtils.formatDate(new Date(task.start_dat
     }
   },
 
-  async handleCreateTaskSubmission() {
+async handleCreateTaskSubmission() {
   const titleInput = document.getElementById("modal-task-name");
   const descriptionInput = document.getElementById("modal-task-des");
   const timeRangeInput = document.getElementById("modal-task-time");
@@ -1003,6 +1003,26 @@ const startDate = task.start_date ? DateUtils.formatDate(new Date(task.start_dat
   if (!startDateISO || !endDateISO) {
     alert("Please provide valid start and end dates.");
     return;
+  }
+
+    const now = new Date();
+  const startDate = new Date(startDateISO);
+  
+  // Validate that start date is not in the past
+  const currentDateOnly = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const startDateOnly = new Date(startDate.getFullYear(), startDate.getMonth(), startDate.getDate());
+  
+  if (startDateOnly < currentDateOnly) {
+    alert("Start date cannot be in the past. Please select a current or future date.");
+    return;
+  }
+  
+  // Validate that start time is not in the past if the date is today
+  if (startDateOnly.getTime() === currentDateOnly.getTime()) {
+    if (startDate < now) {
+      alert("Start time cannot be in the past. Please select a current or future time.");
+      return;
+    }
   }
 
   // Validate that end date is after start date
