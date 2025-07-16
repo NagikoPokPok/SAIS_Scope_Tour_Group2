@@ -19,57 +19,20 @@ const CACHE_KEYS = {
 // Create a new task
 exports.createTask = async (req, res) => {
   try {
-    const { user_id, team_id, subject_id, title, description, start_date, end_date } = req.body;
+    console.log('🔨 Controller: Creating task with data:', req.body);
     
-    console.log("Received payload:", req.body);
+    // CHỈ queue task, KHÔNG tạo trực tiếp
+    await taskQueueService.queueTaskCreation(req.body);
     
-    if (!subject_id || !title) {
-      return res.status(400).json({ error: 'Subject ID and title are required' });
-    }
+    console.log('✅ Task queued for creation');
+    res.status(202).json({ 
+      message: 'Task creation queued successfully',
+      status: 'pending'
+    });
     
-    const taskData = {
-      user_id,
-      team_id,
-      subject_id,
-      title,
-      description,
-      start_date,
-      end_date
-    };
-    
-    // Try to queue the task creation
-    const queued = await taskQueueService.queueTaskCreation(taskData);
-    
-    if (queued) {
-      // Task queued successfully
-      return res.status(202).json({
-        message: 'Task creation queued successfully! It will be processed shortly.',
-        status: 'queued'
-      });
-    } else {
-      // Fallback to direct creation if queue is not available
-      console.log('⚠️ Queue not available, creating task directly');
-      const newTask = await Task.create({
-        ...taskData,
-        status: 'pending'
-      });
-      
-      // Invalidate cache directly
-      if (redisClient.isReady) {
-        const pattern = `tasks:${subject_id}:${team_id}:*`;
-        for await (const key of redisClient.scanIterator(pattern)) {
-          await redisClient.del(key);
-        }
-      }
-      
-      return res.status(201).json({
-        message: 'Task created successfully!',
-        data: newTask
-      });
-    }
   } catch (error) {
-    console.error("Error creating task:", error);
-    return res.status(500).json({ error: error.message });
+    console.error('❌ Error queueing task creation:', error);
+    res.status(500).json({ error: 'Failed to queue task creation' });
   }
 };
 

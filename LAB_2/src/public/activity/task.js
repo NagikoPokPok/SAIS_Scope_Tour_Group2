@@ -1,25 +1,130 @@
 let currentPageAvailable = 1;
 let currentPageSubmitted = 1;
 let tasksPerPage = 5;
+let socket = null;
+
+// ===================== ĐỊNH NGHĨA SHOWNOTIFICATION TRƯỚC ======================
+function showNotification(message, type = 'info') {
+  console.log(`📢 Notification: ${message} (${type})`);
+  
+  const notification = document.createElement('div');
+  notification.className = `alert alert-${type} alert-dismissible fade show`;
+  notification.style.cssText = `
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 9999;
+    min-width: 300px;
+  `;
+  notification.innerHTML = `
+    ${message}
+    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+  `;
+  
+  document.body.appendChild(notification);
+  
+  setTimeout(() => {
+    if (notification.parentNode) {
+      notification.parentNode.removeChild(notification);
+    }
+  }, 5000);
+}
+
 document.addEventListener("DOMContentLoaded", function () {
-  // ==================== INITIALIZATION ====================
+  console.log("🚀 DOM loaded, initializing...");
+  
   const urlParams = new URLSearchParams(window.location.search);
   const subjectId = urlParams.get("subjectId");
   const teamId = urlParams.get("teamId");
   const subjectName = urlParams.get("subjectName");
 
-  // Display subject name in header
-  if (subjectName) {
-    const headerEl = document.querySelector(".subject-name");
-    if (headerEl) headerEl.textContent = subjectName;
+  console.log("📋 Page params:", { subjectId, teamId, subjectName });
+
+  // Initialize WebSocket với debug chi tiết
+  try {
+    if (typeof io !== 'undefined') {
+      console.log("🔌 Initializing Socket.IO connection...");
+      
+      socket = io('http://localhost:3000', {
+        transports: ['websocket', 'polling'],
+        timeout: 5000,
+        reconnection: true,
+        reconnectionAttempts: 5,
+        reconnectionDelay: 1000
+      });
+      
+      socket.on('connect', () => {
+        console.log('✅ Socket connected with ID:', socket.id);
+        socket.emit('join:room', { teamId, subjectId });
+      });
+
+      socket.on('room:joined', (data) => {
+        console.log('🏠 Successfully joined room:', data);
+        showNotification(`Connected to real-time updates`, 'success');
+      });
+
+      // Task event listeners với debouncing để tránh duplicate
+      let lastTaskEventTime = 0;
+      const EVENT_DEBOUNCE_MS = 1000; // 1 second
+
+      socket.on('task:created', (data) => {
+        const now = Date.now();
+        if (now - lastTaskEventTime < EVENT_DEBOUNCE_MS) {
+          console.log('🛡️ Duplicate task event detected, skipping...');
+          return;
+        }
+        lastTaskEventTime = now;
+
+        console.log('🔔 New task created event received:', data);
+        if (data.teamId == teamId && data.subjectId == subjectId) {
+          console.log('✅ Task event matches current page, refreshing...');
+          TaskManager.loadTasks(currentPageAvailable, currentPageSubmitted, true);
+          showNotification('New task created!', 'success');
+        }
+      });
+
+      socket.on('task:updated', (data) => {
+        console.log('🔔 Task updated event received:', data);
+        if (data.teamId == teamId && data.subjectId == subjectId) {
+          TaskManager.loadTasks(currentPageAvailable, currentPageSubmitted, true);
+          showNotification('Task updated!', 'info');
+        }
+      });
+
+      socket.on('task:deleted', (data) => {
+        console.log('🔔 Task deleted event received:', data);
+        if (data.teamId == teamId && data.subjectId == subjectId) {
+          TaskManager.loadTasks(currentPageAvailable, currentPageSubmitted, true);
+          showNotification('Task deleted!', 'warning');
+        }
+      });
+
+      socket.on('task:submitted', (data) => {
+        console.log('🔔 Task submitted event received:', data);
+        if (data.teamId == teamId && data.subjectId == subjectId) {
+          TaskManager.loadTasks(currentPageAvailable, currentPageSubmitted, true);
+          showNotification('Task submitted!', 'success');
+        }
+      });
+
+    } else {
+      console.error('❌ Socket.IO library not loaded');
+      showNotification('Real-time features not available - Socket.IO not loaded', 'danger');
+    }
+  } catch (error) {
+    console.error('❌ Socket initialization error:', error);
+    showNotification('Failed to initialize real-time features', 'danger');
   }
 
-  // Validate required parameters
-  if (!subjectId || !teamId) {
-    console.error("Missing subjectId or teamId in URL.");
-    alert("Cannot load tasks: Missing subject or team information.");
-    return;
-  }
+  // Test function để kiểm tra socket
+  window.testSocket = function() {
+    if (socket && socket.connected) {
+      console.log('✅ Socket is connected');
+      socket.emit('join:room', { teamId, subjectId });
+    } else {
+      console.log('❌ Socket is not connected');
+    }
+  };
 
   // ==================== UTILITY FUNCTIONS ====================
   const DateUtils = {
@@ -434,37 +539,6 @@ const startDate = task.start_date ? DateUtils.formatDate(new Date(task.start_dat
   }
 },
 
-    // renderAvailablePagination(totalCount) {
-    //   const totalPages = Math.ceil(totalCount / tasksPerPage);
-    //   const container = document.getElementById("pageNumbers");
-    //   const pageInfo = document.getElementById("pageInfo");
-
-    //   if (!container) return;
-    //   container.innerHTML = "";
-
-    //   for (let i = 1; i <= totalPages; i++) {
-    //     const btn = document.createElement("button");
-    //     btn.textContent = i;
-    //     btn.className = `btn btn-sm ${i === currentPageAvailable ? 'btn-primary' : 'btn-outline-primary'}`;
-    //     btn.onclick = () => {
-    //       currentPageAvailable = i;
-    //       TaskManager.loadTasks();
-    //     };
-    //     container.appendChild(btn);
-    //   }
-
-    //   if (pageInfo) pageInfo.textContent = `${currentPageAvailable} / ${totalPages}`;
-
-    //   document.getElementById("firstPageBtn").onclick = () => TaskManager.loadTasks(1);
-    //   document.getElementById("prevPageBtn").onclick = () => {
-    //     if (currentPageAvailable > 1) TaskManager.loadTasks(currentPageAvailable - 1);
-    //   };
-    //   document.getElementById("nextPageBtn").onclick = () => {
-    //     if (currentPageAvailable < totalPages) TaskManager.loadTasks(currentPageAvailable + 1);
-    //   };
-    //   document.getElementById("lastPageBtn").onclick = () => TaskManager.loadTasks(totalPages);
-    // },
-    
  renderAvailablePagination(totalCount) {
   const totalPages = Math.ceil(totalCount / tasksPerPage);
   const container = document.getElementById("pageNumbers");
@@ -524,67 +598,7 @@ const startDate = task.start_date ? DateUtils.formatDate(new Date(task.start_dat
     }
   };
 },
-    // renderSubmittedPagination(totalCount) {
-    //   const totalPages = Math.ceil(totalCount / tasksPerPage);
-    //   const container = document.getElementById("pageNumbersSubmitted");
-    //   const pageInfo = document.getElementById("submittedPageInfo");
-
-    //   if (!container) return;
-    //   container.innerHTML = "";
-
-    //   for (let i = 1; i <= totalPages; i++) {
-    //     const btn = document.createElement("button");
-    //     btn.textContent = i;
-    //     btn.className = `btn btn-sm ${i === currentPageSubmitted ? 'btn-primary' : 'btn-outline-primary'}`;
-    //     btn.onclick = () => {
-    //       currentPageSubmitted = i;
-    //       TaskManager.loadTasks();
-    //     };
-    //     container.appendChild(btn);
-    //   }
-
-    //   if (pageInfo) pageInfo.textContent = `${currentPageSubmitted} / ${totalPages}`;
-
-    //   document.getElementById("firstPageSubmittedBtn").onclick = () => TaskManager.loadTasks(1);
-    //   document.getElementById("prevPageSubmittedBtn").onclick = () => {
-    //     if (currentPageSubmitted > 1) TaskManager.loadTasks(currentPageSubmitted - 1);
-    //   };
-    //   document.getElementById("nextPageSubmittedBtn").onclick = () => {
-    //     if (currentPageSubmitted < totalPages) TaskManager.loadTasks(currentPageSubmitted + 1);
-    //   };
-    //   document.getElementById("lastPageSubmittedBtn").onclick = () => TaskManager.loadTasks(totalPages);
-    // },
-//     renderSubmittedPagination(totalCount) {
-//     const totalPages = Math.ceil(totalCount / tasksPerPage);
-//     const container = document.getElementById("pageNumbersSubmitted");
-//     const pageInfo = document.getElementById("submittedPageInfo");
-
-//     if (!container) return;
-//     container.innerHTML = "";
-
-//     // Đoạn này cần tạo các nút số trang như phần available
-//     for (let i = 1; i <= totalPages; i++) {
-//       const btn = document.createElement("button");
-//       btn.textContent = i;
-//       btn.className = `btn btn-sm ${i === currentPageSubmitted ? 'btn-primary' : 'btn-outline-primary'}`;
-//       btn.onclick = () => {
-//         currentPageSubmitted = i;
-//         TaskManager.loadTasks(currentPageAvailable, i);
-//       };
-//       container.appendChild(btn);
-//     }
-
-//     if (pageInfo) pageInfo.textContent = `${currentPageSubmitted} / ${totalPages}`;
-
-//     document.getElementById("firstPageSubmittedBtn").onclick = () => TaskManager.loadTasks(currentPageAvailable, 1);
-//     document.getElementById("prevPageSubmittedBtn").onclick = () => {
-//       if (currentPageSubmitted > 1) TaskManager.loadTasks(currentPageAvailable, currentPageSubmitted - 1);
-//     };
-//     document.getElementById("nextPageSubmittedBtn").onclick = () => {
-//       if (currentPageSubmitted < totalPages) TaskManager.loadTasks(currentPageAvailable, currentPageSubmitted + 1);
-//     };
-//     document.getElementById("lastPageSubmittedBtn").onclick = () => TaskManager.loadTasks(currentPageAvailable, totalPages);
-// },
+    
     renderSubmittedPagination(totalCount) {
       const totalPages = Math.ceil(totalCount / tasksPerPage);
       const container = document.getElementById("pageNumbersSubmitted");
