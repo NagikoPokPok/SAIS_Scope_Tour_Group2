@@ -62,6 +62,28 @@ document.querySelector(".btn-login").addEventListener("click", async (event) => 
         const data = await response.json();
 
         if (data.success) {
+            localStorage.setItem('user', JSON.stringify(data.user)); 
+
+            // 🧠 Lấy token từ URL nếu có
+            const urlParams = new URLSearchParams(window.location.search);
+            const inviteToken = urlParams.get("token");
+
+            if (inviteToken) {
+                // 🔁 Gửi token để join nhóm
+                const joinRes = await fetch("http://localhost:3000/api/join/join-team", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ email, token: inviteToken })
+                });
+
+                const joinData = await joinRes.json();
+                console.log("🔗 Kết quả join team:", joinData);
+
+                if (!joinData.success) {
+                    alert("Cảnh báo: Không thể tham gia nhóm: " + joinData.message);
+                }
+            }
+
             window.location.href = "list-goal-team.html";
         } else {
             alert(data.message);

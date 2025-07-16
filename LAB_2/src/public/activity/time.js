@@ -31,5 +31,9 @@ document.addEventListener('DOMContentLoaded', function () {
     //   .catch(() => {
     //       // Có thể giữ nguyên tên mặc định hoặc xử lý lỗi nếu muốn
     //   });
+
+    // Khi user bấm nút đăng xuất
+    // localStorage.removeItem('user');
+    // window.location.href = "login.html";
   });
   

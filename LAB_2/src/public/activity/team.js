@@ -1,6 +1,20 @@
 document.addEventListener('DOMContentLoaded', function () {
   const colors = ['#E08963', '#5E96AE', '#f15f0e', '#A2C139']; // Màu luân phiên
 
+    document.getElementById('reg-modal').addEventListener('shown.bs.modal', function () {
+        document.getElementById('sample1').innerHTML = '';
+        window.sample1 = new EmailsInput(document.getElementById('sample1'), {});
+    });
+
+   // Kiểm tra trạng thái đăng nhập bằng localStorage
+  const user = JSON.parse(localStorage.getItem('user'));
+  if (!user) {
+    window.location.href = "login.html";
+    return;
+  }
+  // Hiển thị tên user
+  document.getElementById('user_name').textContent = user.name || user.user_name || user.email;
+  
   function renderTeams(teams, isSearch = false) {
       const teamList = document.getElementById('teamList');
       teamList.innerHTML = '';
@@ -59,7 +73,7 @@ document.addEventListener('DOMContentLoaded', function () {
       const teamList = document.getElementById('teamList');
       teamList.innerHTML = '<span>Loading...</span>';
       try {
-          const response = await fetch('http://localhost:3000/api/team');
+          const response = await fetch(`http://localhost:3000/api/team?created_by=${user.user_id}`);
           if (!response.ok) throw new Error('Network response was not ok');
           const data = await response.json();
           renderTeams(data.teams, false);
@@ -145,7 +159,7 @@ document.addEventListener('DOMContentLoaded', function () {
       const teamList = document.getElementById('teamList');
       teamList.innerHTML = '<span>Searching...</span>';
       try {
-          const url = `http://localhost:3000/api/team?search=${encodeURIComponent(searchQuery.trim())}`;
+          const url = `http://localhost:3000/api/team?search=${encodeURIComponent(searchQuery.trim())}&created_by=${user.user_id}`;
           const response = await fetch(url);
           if (!response.ok) throw new Error('Network response was not ok');
           const data = await response.json();
@@ -199,16 +213,26 @@ document.addEventListener('DOMContentLoaded', function () {
       createTeamForm.addEventListener('submit', async (event) => {
           event.preventDefault();
           const teamName = document.getElementById('modal-team-name').value.trim();
+          const emails = window.sample1 && typeof window.sample1.getValue === 'function'
+            ? window.sample1.getValue()
+            : [];
+          console.log('Emails:', emails); // Debug log
           if (!teamName) {
               alert('Team name is required.');
               return;
           }
           try {
-              const response = await fetch('http://localhost:3000/api/team', {
-                  method: 'POST',
-                  headers: { 'Content-Type': 'application/json' },
-                  body: JSON.stringify({ teamName })
-              });
+            //   const response = await fetch('http://localhost:3000/api/team', {
+            //       method: 'POST',
+            //       headers: { 'Content-Type': 'application/json' },
+            //       body: JSON.stringify({ teamName })
+            //   });
+            console.log('Creating team with:', { teamName, created_by: user.user_id, emails, host: user.email });
+            const response = await fetch('http://localhost:3000/api/team', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ teamName, created_by: user.user_id, emails, host: user.email }) // gửi kèm created_by
+            });
               const result = await response.json();
               if (response.ok) {
                   alert(result.message);
@@ -219,6 +243,9 @@ document.addEventListener('DOMContentLoaded', function () {
                       fetchAllTeams(); // Refresh full list if no search active
                   }
                   bootstrap.Modal.getInstance(document.getElementById('reg-modal')).hide();
+                  if (window.sample1 && typeof window.sample1.clear === 'function') {
+                    window.sample1.clear();
+                  }
                   createTeamForm.reset();
               } else {
                   alert(result.message || 'Failed to create team.');

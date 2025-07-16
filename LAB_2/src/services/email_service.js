@@ -1,6 +1,6 @@
 const nodemailer = require("nodemailer");
 
-const sendInvitationEmail = async (recipientEmail, inviteLink) => {
+const sendInvitationEmail = async (host, recipientEmail, inviteLink) => {
     try {
         console.log('send email');
         let transporter = nodemailer.createTransport({
@@ -12,7 +12,7 @@ const sendInvitationEmail = async (recipientEmail, inviteLink) => {
         });
 
         let mailOptions = {
-            from: '"Your Website" <cuong2432004@gmail.com>',
+            from: `"ScopeTour" ${host}`, // Thay bằng tên hiển thị của bạn
             to: recipientEmail,
             subject: "You're Invited!",
             html: `

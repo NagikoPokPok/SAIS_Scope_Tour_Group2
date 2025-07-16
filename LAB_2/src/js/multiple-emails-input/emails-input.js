@@ -45,6 +45,8 @@ lib.EmailsInput = (function(utils) {
   }
 
   return function() {
+    window.EmailsInput = EmailsInput;
+    
     const instance = Object.create(EmailsInput.prototype)
     EmailsInput.apply(instance, Array.prototype.slice.call(arguments))
     return instance
@@ -153,3 +155,5 @@ lib.EmailsInput = (function(utils) {
   }
 
 }(lib.utils))
+
+

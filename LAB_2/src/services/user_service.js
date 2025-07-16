@@ -85,6 +85,33 @@ class UserService {
             return false;
         }
     }
+
+    static async verifyInviteToken(email, token) {
+        try {
+            const user = await User.findOne({ where: { email } });
+            if (!user || user.invite_token !== token) return false;
+
+            // Optionally: kiểm tra thời gian hết hạn nếu bạn thêm cột `invite_token_expiry`
+            return true;
+        } catch (error) {
+            console.error("Lỗi khi xác thực token:", error);
+            return false;
+        }
+    }
+
+    static async saveInviteToken(email, token) {
+        try {
+            const user = await User.findOne({ where: { email } });
+            if (user) {
+                user.invite_token = token;
+                await user.save();
+            }
+        } catch (error) {
+            console.error("Lỗi khi lưu token mời:", error);
+        }
+    }
+
+
 }
 
 module.exports = UserService;

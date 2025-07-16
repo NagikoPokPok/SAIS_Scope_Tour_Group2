@@ -11,6 +11,7 @@ const taskRoutes = require('./routes/task_route');
 const loginRoute = require('./routes/login_route');
 const signupRoute = require('./routes/signup_route');
 const userProfileRoute = require('./routes/user_profile_route');
+const joinRoute = require('./routes/join_route');
 
 const path = require('path');
 
@@ -50,6 +51,7 @@ app.use('/api/task', taskRoutes);
 app.use("/api/login", loginRoute);
 app.use("/api/signup", signupRoute);
 app.use("/api/user-profile", userProfileRoute);
+app.use("/api/join", joinRoute);
 
 // 404 Handler
 app.use((req, res, next) => {
