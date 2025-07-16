@@ -19,57 +19,20 @@ const CACHE_KEYS = {
 // Create a new task
 exports.createTask = async (req, res) => {
   try {
-    const { user_id, team_id, subject_id, title, description, start_date, end_date } = req.body;
+    console.log('🔨 Controller: Creating task with data:', req.body);
     
-    console.log("Received payload:", req.body);
+    // CHỈ queue task, KHÔNG tạo trực tiếp
+    await taskQueueService.queueTaskCreation(req.body);
     
-    if (!subject_id || !title) {
-      return res.status(400).json({ error: 'Subject ID and title are required' });
-    }
+    console.log('✅ Task queued for creation');
+    res.status(202).json({ 
+      message: 'Task creation queued successfully',
+      status: 'pending'
+    });
     
-    const taskData = {
-      user_id,
-      team_id,
-      subject_id,
-      title,
-      description,
-      start_date,
-      end_date
-    };
-    
-    // Try to queue the task creation
-    const queued = await taskQueueService.queueTaskCreation(taskData);
-    
-    if (queued) {
-      // Task queued successfully
-      return res.status(202).json({
-        message: 'Task creation queued successfully! It will be processed shortly.',
-        status: 'queued'
-      });
-    } else {
-      // Fallback to direct creation if queue is not available
-      console.log('⚠️ Queue not available, creating task directly');
-      const newTask = await Task.create({
-        ...taskData,
-        status: 'pending'
-      });
-      
-      // Invalidate cache directly
-      if (redisClient.isReady) {
-        const pattern = `tasks:${subject_id}:${team_id}:*`;
-        for await (const key of redisClient.scanIterator(pattern)) {
-          await redisClient.del(key);
-        }
-      }
-      
-      return res.status(201).json({
-        message: 'Task created successfully!',
-        data: newTask
-      });
-    }
   } catch (error) {
-    console.error("Error creating task:", error);
-    return res.status(500).json({ error: error.message });
+    console.error('❌ Error queueing task creation:', error);
+    res.status(500).json({ error: 'Failed to queue task creation' });
   }
 };
 
@@ -145,27 +108,35 @@ exports.getTasks = async (req, res) => {
     res.setHeader('Pragma', 'no-cache');
     res.setHeader('Expires', '0');
     
-    console.log(`Request for tasks with status=${status}, skipCache=${skipCache}`);
+    console.log(`Request for tasks with status=${status}, search="${search}", skipCache=${skipCache}`);
     
+    // Nếu có search query, không dùng cache
+    const useCache = !search && !skipCache;
     const cacheKey = CACHE_KEYS.TASK_LIST(subjectId, teamId, status, page, limit);
     const countCacheKey = CACHE_KEYS.TASK_COUNT(subjectId, teamId, status);
     
     try {
-      console.log('🔍 Querying database first...');
+      console.log('🔍 Querying database...');
       const offset = (page - 1) * limit;
       let result;
       
       if (status === "completed") {
         // Lấy submitted tasks từ TaskCompleted join với Task
+        let whereClause = {
+          subject_id: subjectId,
+          team_id: teamId
+        };
+
+        // Add search condition
+        if (search && search.trim()) {
+          whereClause.title = { [Op.like]: `%${search.trim()}%` };
+        }
+
         result = await TaskCompleted.findAndCountAll({
           include: [{
             model: Task,
             required: true,
-            where: {
-              subject_id: subjectId,
-              team_id: teamId,
-              ...(search && search.trim() ? { title: { [Op.like]: `%${search.trim()}%` } } : {})
-            }
+            where: whereClause
           }],
           limit: parseInt(limit),
           offset: parseInt(offset),
@@ -201,6 +172,7 @@ exports.getTasks = async (req, res) => {
           task_id: { [Op.notIn]: completedTaskIds.length > 0 ? completedTaskIds : [-1] }
         };
         
+        // Add search condition
         if (search && search.trim()) {
           whereClause.title = { [Op.like]: `%${search.trim()}%` };
         }
@@ -218,6 +190,7 @@ exports.getTasks = async (req, res) => {
           team_id: teamId
         };
         
+        // Add search condition
         if (search && search.trim()) {
           whereClause.title = { [Op.like]: `%${search.trim()}%` };
         }
@@ -232,8 +205,8 @@ exports.getTasks = async (req, res) => {
       
       console.log(`✅ Database query successful - found ${result.count} tasks`);
       
-      // Store in cache for future fallback
-      if (!search && redisClient.isReady) {
+      // Store in cache for future fallback (only if not searching)
+      if (useCache && redisClient.isReady) {
         try {
           await redisClient.setEx(cacheKey, CACHE_TTL, JSON.stringify(result.rows));
           await redisClient.setEx(countCacheKey, CACHE_TTL, result.count.toString());
@@ -248,14 +221,17 @@ exports.getTasks = async (req, res) => {
         total: result.count,
         currentPage: parseInt(page),
         totalPages: Math.ceil(result.count / limit),
-        source: 'database'
+        source: 'database',
+        searchQuery: search || null
       });
       
     } catch (dbError) {
       console.error("❌ Database error:", dbError.message);
-      console.log('🔄 Attempting to serve from cache as fallback...');
       
-      if (redisClient.isReady && !search) {
+      // Only try cache fallback if not searching
+      if (useCache && redisClient.isReady) {
+        console.log('🔄 Attempting to serve from cache as fallback...');
+        
         try {
           const cachedData = await redisClient.get(cacheKey);
           const cachedCount = await redisClient.get(countCacheKey);
@@ -279,8 +255,6 @@ exports.getTasks = async (req, res) => {
         } catch (cacheError) {
           console.error("❌ Cache fallback also failed:", cacheError.message);
         }
-      } else {
-        console.log('⚠️ Cache not available (Redis not ready or search query)');
       }
       
       console.error("💥 Both database and cache failed");

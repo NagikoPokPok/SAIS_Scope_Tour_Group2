@@ -4,24 +4,39 @@ const taskService = require('../services/task_service');
 const TaskCompleted = require('../models/TaskCompleted');
 const redisClient = require('../utils/redis_client');
 const sequelize = require('../config/database');
+const websocketHandler = require('../utils/websocket_handler');
 
 class TaskConsumer {
   constructor() {
     this.isProcessing = false;
-    this.retryQueue = new Map(); // Track retry attempts
+    this.retryQueue = new Map();
+    this.processedMessages = new Set(); // Track processed messages
   }
 
   async startConsuming() {
     console.log('🚀 Starting task consumers...');
     
-    // Consume task operations
-    await this.consumeTaskOperations();
+    // Đảm bảo chỉ consume 1 lần
+    if (this.isProcessing) {
+      console.log('⚠️ Consumer already running, skipping...');
+      return;
+    }
     
-    // Consume task submissions
-    await this.consumeTaskSubmissions();
+    this.isProcessing = true;
     
-    // Consume cache invalidation
-    await this.consumeCacheInvalidation();
+    try {
+      // Consume task operations
+      await this.consumeTaskOperations();
+      
+      // Consume task submissions
+      await this.consumeTaskSubmissions();
+      
+      // Consume cache invalidation
+      await this.consumeCacheInvalidation();
+    } catch (error) {
+      console.error('❌ Error starting consumers:', error);
+      this.isProcessing = false;
+    }
   }
 
   // Check database connectivity
@@ -44,95 +59,45 @@ class TaskConsumer {
     await rabbitmqClient.consumeFromQueue(QUEUES.TASK_OPERATIONS, async (message) => {
       const messageId = this.getMessageId(message);
       
-      // Check if we're already processing this message
-      if (this.retryQueue.has(messageId)) {
-        const retryInfo = this.retryQueue.get(messageId);
-        if (Date.now() - retryInfo.lastAttempt < 10000) { // 10 second cooldown
-          console.log('⏸️ Message still in cooldown, skipping:', messageId);
-          return; // Don't ack, don't nack - just skip
-        }
+      // Check if already processed
+      if (this.processedMessages.has(messageId)) {
+        console.log('🛡️ Duplicate message detected, skipping:', messageId);
+        return { success: true };
       }
 
-      console.log('📥 Processing task operation:', message.operation, 'ID:', messageId);
+      console.log('⚙️ Processing task operation:', message.operation);
       
-      // Check database connectivity first
-      const dbConnected = await this.isDatabaseConnected();
-      if (!dbConnected) {
-        console.log('💔 Database not available, postponing message processing');
-        
-        // Track retry attempts
-        const currentRetries = this.retryQueue.get(messageId)?.retries || 0;
-        if (currentRetries >= 5) {
-          console.log('💀 Max retries reached for message, sending to DLQ:', messageId);
-          // In production, you'd send to Dead Letter Queue
-          // For now, we'll just ack to remove it
-          return; // This will ack the message
-        }
-
-        // Update retry tracking
-        this.retryQueue.set(messageId, {
-          retries: currentRetries + 1,
-          lastAttempt: Date.now()
-        });
-
-        // Don't ack, don't nack - let RabbitMQ redeliver later
-        throw new Error('Database not available - message will be retried');
-      }
-
       try {
-        // Clear retry tracking on successful connection
-        this.retryQueue.delete(messageId);
-        
+        let result;
         switch (message.operation) {
           case 'CREATE_TASK':
-            await this.handleTaskCreation(message.data);
+            result = await this.handleTaskCreation(message.data);
             break;
           case 'UPDATE_TASK':
-            await this.handleTaskUpdate(message.data);
+            result = await this.handleTaskUpdate(message.data);
             break;
           case 'DELETE_TASK':
-            await this.handleTaskDeletion(message.data);
+            result = await this.handleTaskDeletion(message.data);
             break;
           default:
-            console.log('❓ Unknown operation:', message.operation);
+            console.warn('Unknown operation:', message.operation);
+            return { success: false, error: 'Unknown operation' };
         }
         
-        console.log('✅ Successfully processed:', messageId);
+        // Mark as processed
+        this.processedMessages.add(messageId);
         
+        // Clean up old processed messages (keep only last 1000)
+        if (this.processedMessages.size > 1000) {
+          const entries = Array.from(this.processedMessages);
+          this.processedMessages.clear();
+          entries.slice(-500).forEach(id => this.processedMessages.add(id));
+        }
+        
+        return { success: true, result };
       } catch (error) {
-        console.error('❌ Error processing task operation:', error.message);
-        
-        // Only retry if it's not a database connection error
-        if (error.name === 'SequelizeConnectionRefusedError' || 
-            error.name === 'ConnectionRefusedError' ||
-            error.code === 'ECONNREFUSED') {
-          
-          console.log('💔 Database connection error - will retry later');
-          
-          // Track retry
-          const currentRetries = this.retryQueue.get(messageId)?.retries || 0;
-          this.retryQueue.set(messageId, {
-            retries: currentRetries + 1,
-            lastAttempt: Date.now()
-          });
-          
-          // Don't process retry logic for connection errors
-          throw error;
-        }
-        
-        // For other errors, use original retry logic
-        if (message.retryCount < 3) {
-          message.retryCount++;
-          console.log(`🔄 Scheduling retry ${message.retryCount}/3 for message:`, messageId);
-          
-          setTimeout(() => {
-            rabbitmqClient.sendToQueue(QUEUES.TASK_OPERATIONS, message);
-          }, 5000 * message.retryCount);
-        } else {
-          console.error('💀 Max retries reached for message:', messageId);
-        }
-        
-        throw error;
+        console.error('❌ Task operation failed:', error);
+        return { success: false, error: error.message };
       }
     });
   }
@@ -193,18 +158,21 @@ class TaskConsumer {
   async handleTaskCreation(taskData) {
     console.log('🔨 Creating task:', taskData);
     
-    // Double-check database connection before attempting operation
-    const dbConnected = await this.isDatabaseConnected();
-    if (!dbConnected) {
-      throw new Error('Database connection lost during task creation');
-    }
-    
     const task = await taskService.createTask(taskData);
     
     // Invalidate cache
     await this.invalidateTaskCache(task.team_id, task.subject_id);
     
-    console.log('✅ Task created successfully:', task.task_id);
+    // Emit WebSocket event với debug
+    console.log('📡 Emitting task:created event for:', {
+      teamId: task.team_id,
+      subjectId: task.subject_id,
+      taskId: task.task_id
+    });
+    
+    websocketHandler.emitTaskCreated(task.team_id, task.subject_id, task);
+    
+    console.log('✅ Task created and event emitted');
     return task;
   }
 
@@ -213,15 +181,15 @@ class TaskConsumer {
     
     const dbConnected = await this.isDatabaseConnected();
     if (!dbConnected) {
-      throw new Error('Database connection lost during task update');
+      throw new Error('Database not connected');
     }
     
     const task = await taskService.updateTask(data.taskId, data.updateData);
     
     if (task) {
-      // Invalidate cache
       await this.invalidateTaskCache(task.team_id, task.subject_id);
-      console.log('✅ Task updated successfully:', task.task_id);
+      // Emit WebSocket event
+      websocketHandler.emitTaskUpdated(task.team_id, task.subject_id, task);
     }
     
     return task;
@@ -232,15 +200,15 @@ class TaskConsumer {
     
     const dbConnected = await this.isDatabaseConnected();
     if (!dbConnected) {
-      throw new Error('Database connection lost during task deletion');
+      throw new Error('Database not connected');
     }
     
     const result = await taskService.deleteTask(data.taskId);
     
     if (result) {
-      // Invalidate cache
       await this.invalidateTaskCache(result.team_id, result.subject_id);
-      console.log('✅ Task deleted successfully:', data.taskId);
+      // Emit WebSocket event
+      websocketHandler.emitTaskDeleted(result.team_id, result.subject_id, data.taskId);
     }
     
     return result;
@@ -251,33 +219,39 @@ class TaskConsumer {
     
     const dbConnected = await this.isDatabaseConnected();
     if (!dbConnected) {
-      throw new Error('Database connection lost during task submission');
+      throw new Error('Database not connected');
     }
     
     // Check if already submitted
     const existingSubmission = await TaskCompleted.findOne({
       where: { task_id: data.taskId, user_id: data.userId }
     });
-    
+
     if (existingSubmission) {
       console.log('⚠️ Task already submitted by this user');
-      return existingSubmission;
+      return { alreadySubmitted: true };
     }
-    
+
+    // Get task details first
+    const task = await taskService.getTaskById(data.taskId);
+    if (!task) {
+      throw new Error('Task not found');
+    }
+
     // Create submission
     const submission = await TaskCompleted.create({
       task_id: data.taskId,
       user_id: data.userId,
-      completed_date: new Date()
+      submitted_at: new Date()
     });
+
+    // Invalidate cache
+    await this.invalidateTaskCache(task.team_id, task.subject_id);
     
-    // Get task details for cache invalidation
-    const task = await taskService.getTaskById(data.taskId);
-    if (task) {
-      await this.invalidateTaskCache(task.team_id, task.subject_id);
-    }
-    
-    console.log('✅ Task submitted successfully:', submission.id);
+    // Emit WebSocket event
+    websocketHandler.emitTaskSubmitted(task.team_id, task.subject_id, data.taskId, data.userId);
+
+    console.log('✅ Task submitted successfully');
     return submission;
   }
 

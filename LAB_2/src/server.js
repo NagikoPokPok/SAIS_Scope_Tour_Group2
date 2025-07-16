@@ -1,6 +1,7 @@
 const express = require('express');
 const cors = require('cors');
 const sequelize = require('./config/database');
+const http = require('http');
 
 // Load associations first
 require('./models/associations');
@@ -19,9 +20,11 @@ const path = require('path');
 const { warmTaskCache } = require('./middlewares/cache_warming');
 const redisClient = require('./utils/redis_client');
 const rabbitmqClient = require('./utils/rabbitmq_client');
-
+const websocketHandler = require('./utils/websocket_handler');
+const taskConsumer = require('./consumers/task_consumer');
 
 const app = express();
+const server = http.createServer(app);
 const PORT = 3000; // Express server port
 
 // Middleware
@@ -39,7 +42,6 @@ app.use(cors({
   allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
   credentials: true
 }));
-
 
 // Serve static files from "public"
 app.use(express.static(path.join(__dirname, 'public')));
@@ -73,6 +75,10 @@ const initializeServices = async () => {
     // Connect to RabbitMQ
     await rabbitmqClient.connect();
     console.log('✅ RabbitMQ connection established.');
+    
+    // Start task consumer
+    await taskConsumer.startConsuming();
+    console.log('✅ Task consumer started.');
     
   } catch (err) {
     console.error('❌ Service initialization failed:', err);
@@ -112,6 +118,9 @@ setInterval(async () => {
   }
 }, CACHE_REFRESH_INTERVAL);
 
+// Initialize WebSocket
+websocketHandler.initialize(server);
+
 // Sync Database & Start Server
 const startServer = async () => {
   try {
@@ -120,8 +129,9 @@ const startServer = async () => {
     console.log('Database synced successfully');
     
     // Listen on all interfaces
-    app.listen(PORT, () => {
+    server.listen(PORT, () => {
       console.log(`Server is running on http://<your-public-ip>:${PORT}`);
+      console.log(`WebSocket server initialized`);
     });
   } catch (error) {
     console.error('Unable to start server:', error);
