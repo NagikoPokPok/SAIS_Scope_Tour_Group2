@@ -2,7 +2,7 @@ const InvitationToken = require("../models/InvitationToken");
 const crypto = require("crypto");
 
 class InviteTokenService {
-    static async generateToken(email, team_id) {
+    static async generateToken(email, team_id, team_name) {
         const token = crypto.randomBytes(32).toString("hex");
         const expiresAt = new Date(Date.now() + 60 * 60 * 1000); // Hết hạn sau 1h
 
@@ -10,6 +10,7 @@ class InviteTokenService {
             email,
             token,
             team_id,
+            team_name,
             expires_at: expiresAt,
             used: false,
         });

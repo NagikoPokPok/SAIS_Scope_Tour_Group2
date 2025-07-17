@@ -43,7 +43,8 @@ router.post("/join-team", async (req, res) => {
     // ✅ Thêm vào bảng TeamMember
     await TeamMember.create({
         team_id: teamId,
-        user_id: user.user_id
+        user_id: user.user_id,
+        team_name: tokenRecord.team_name, // Lưu tên nhóm nếu cần
     });
 
     // ✅ Đánh dấu token đã dùng

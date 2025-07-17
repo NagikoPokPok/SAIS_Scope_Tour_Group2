@@ -7,7 +7,7 @@ class InvitationController {
     static async sendInvitation(req, res) {
         console.log("📩 API /api/sendInvitation được gọi");
         console.log(req.body);
-        const { host, email, team_id } = req.body;
+        const { host, email, team_id, team_name } = req.body;
 
         if (!email) {
             return res.status(400).json({ success: false , message: "Email is required" });
@@ -18,7 +18,7 @@ class InvitationController {
             const user = await UserService.getUserByEmail(email);
 
             // 🔐 Tạo token
-            const token = await InviteTokenService.generateToken(email, team_id);
+            const token = await InviteTokenService.generateToken(email, team_id, team_name);
             
             // 📌 Tạo link mời
             var inviteLink = `http://localhost:5500/src/views/login.html`;

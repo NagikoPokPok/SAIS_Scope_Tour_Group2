@@ -1,3 +1,8 @@
+let currentPage = 1;
+let teamsPerPage = 5;
+let totalPages = 1;
+let currentSearchQuery = "";
+
 document.addEventListener('DOMContentLoaded', function () {
   const colors = ['#E08963', '#5E96AE', '#f15f0e', '#A2C139']; // Màu luân phiên
 
@@ -5,6 +10,8 @@ document.addEventListener('DOMContentLoaded', function () {
         document.getElementById('sample1').innerHTML = '';
         window.sample1 = new EmailsInput(document.getElementById('sample1'), {});
     });
+
+    
 
    // Kiểm tra trạng thái đăng nhập bằng localStorage
   const user = JSON.parse(localStorage.getItem('user'));
@@ -69,24 +76,77 @@ document.addEventListener('DOMContentLoaded', function () {
   }
 
   // Fetch all team
-  async function fetchAllTeams() {
-      const teamList = document.getElementById('teamList');
-      teamList.innerHTML = '<span>Loading...</span>';
-      try {
-          const response = await fetch(`http://localhost:3000/api/team?created_by=${user.user_id}`);
-          if (!response.ok) throw new Error('Network response was not ok');
-          const data = await response.json();
-          renderTeams(data.teams, false);
-      } catch (error) {
-          console.error('Error fetching all teams:', error);
-          teamList.innerHTML = `
-          <div class="error-loading d-flex justify-content-center align-items-center flex-column">
-              <img src="../public/img/main-img/error-loading.png" alt="error" class="img-status">
-              <span class="text-status">Error loading</span>
-          </div>
-          `;
-      }
-  }
+//   async function fetchAllTeams() {
+//       const teamList = document.getElementById('teamList');
+//       teamList.innerHTML = '<span>Loading...</span>';
+//       try {
+//           const response = await fetch(`http://localhost:3000/api/team?created_by=${user.user_id}`);
+//           if (!response.ok) throw new Error('Network response was not ok');
+//           const data = await response.json();
+//           renderTeams(data.teams, false);
+//       } catch (error) {
+//           console.error('Error fetching all teams:', error);
+//           teamList.innerHTML = `
+//           <div class="error-loading d-flex justify-content-center align-items-center flex-column">
+//               <img src="../public/img/main-img/error-loading.png" alt="error" class="img-status">
+//               <span class="text-status">Error loading</span>
+//           </div>
+//           `;
+//       }
+//   }
+    async function fetchTeams(page = 1) {
+        let url = `http://localhost:3000/api/team?created_by=${user.user_id}&page=${page}&limit=${teamsPerPage}`;
+        if (currentSearchQuery) {
+            url += `&search=${encodeURIComponent(currentSearchQuery)}`;
+        }
+        const response = await fetch(url);
+        const data = await response.json();
+        totalPages = data.totalPages;
+        currentPage = page;
+        renderTeams(data.teams, !!currentSearchQuery);
+        renderPagination();
+    }
+
+  function renderPagination() {
+    const containerId = 'pagination';
+    let paginationDiv = document.getElementById(containerId);
+    if (!paginationDiv) {
+        paginationDiv = document.createElement('div');
+        paginationDiv.id = containerId;
+        paginationDiv.className = "team-pagination d-flex justify-content-center gap-2 my-3";
+        // Đặt pagination phía dưới teamList, nhưng vẫn trong div#team
+        document.getElementById('team').appendChild(paginationDiv);
+    }
+    paginationDiv.innerHTML = "";
+    console.log('Total pages:', totalPages, 'Current page:', currentPage); // Debug log
+
+    if (totalPages <= 1) {
+        paginationDiv.style.display = "none";
+        return;
+    }
+    paginationDiv.style.display = "flex";
+
+    function pageBtn(page, text, disabled = false, active = false) {
+        const btn = document.createElement('button');
+        btn.textContent = text || page;
+        btn.className = `btn btn-sm ${active ? 'btn-primary' : 'btn-outline-primary'}`;
+        btn.disabled = disabled;
+        btn.onclick = () => fetchTeams(page);
+        return btn;
+    }
+
+    paginationDiv.appendChild(pageBtn(1, '« First', currentPage === 1));
+    paginationDiv.appendChild(pageBtn(currentPage - 1, '‹ Prev', currentPage === 1));
+    for (let i = Math.max(1, currentPage - 1); i <= Math.min(totalPages, currentPage + 1); i++) {
+        paginationDiv.appendChild(pageBtn(i, i, false, i === currentPage));
+    }
+    paginationDiv.appendChild(pageBtn(currentPage + 1, 'Next ›', currentPage === totalPages));
+    paginationDiv.appendChild(pageBtn(totalPages, 'Last »', currentPage === totalPages));
+    const info = document.createElement('span');
+    info.className = "ms-3 fw-semibold text-primary";
+    info.textContent = `${currentPage} / ${totalPages}`;
+    paginationDiv.appendChild(info);
+}
 
   // Delete team
   async function deleteTeam(teamId) {
@@ -97,7 +157,7 @@ document.addEventListener('DOMContentLoaded', function () {
           const result = await response.json();
           if (response.ok) {
               alert(result.message);
-              fetchAllTeams(); // Làm mới danh sách team sau khi xóa
+              fetchTeams(currentPage); // Làm mới danh sách team sau khi xóa
           } else {
               alert(result.message || "Failed to delete team.");
           }
@@ -140,7 +200,7 @@ document.addEventListener('DOMContentLoaded', function () {
 
           if (response.ok) {
               alert(result.message);
-              fetchAllTeams(); // Refresh team list after update
+              fetchTeams(currentPage); // Refresh team list after update
               const modal = bootstrap.Modal.getInstance(document.getElementById('update-modal'));
               modal.hide();
           } else {
@@ -240,7 +300,7 @@ document.addEventListener('DOMContentLoaded', function () {
                   if (currentQuery) {
                       searchTeams(currentQuery); // Refresh with current search query
                   } else {
-                      fetchAllTeams(); // Refresh full list if no search active
+                      fetchTeams(1); // Refresh full list if no search active
                   }
                   bootstrap.Modal.getInstance(document.getElementById('reg-modal')).hide();
                   if (window.sample1 && typeof window.sample1.clear === 'function') {
@@ -257,5 +317,15 @@ document.addEventListener('DOMContentLoaded', function () {
       });
   }
 
-  fetchAllTeams();
+    // Khi search
+    searchInput.addEventListener('input', () => {
+        currentSearchQuery = searchInput.value.trim();
+        console.log('Current search query:', currentSearchQuery); // Debug log
+        currentPage = 1;
+        fetchTeams(1);
+    });
+
+    fetchTeams(1); // Fetch all teams on initial load
+
+//   fetchAllTeams();
 });

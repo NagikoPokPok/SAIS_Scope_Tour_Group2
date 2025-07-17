@@ -6,6 +6,10 @@ const TeamMember = sequelize.define('TeamMember', {
     type: DataTypes.INTEGER,
     primaryKey: true
   },
+  team_name: {
+    type: DataTypes.STRING(255),
+    allowNull: false
+  },
   user_id: {
     type: DataTypes.INTEGER,
     primaryKey: true
