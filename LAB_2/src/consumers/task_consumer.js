@@ -23,10 +23,13 @@ class TaskConsumer {
       this.isDbConnected = await this.isDatabaseConnected();
       
       if (!wasConnected && this.isDbConnected) {
-        console.log('🔄 Database reconnected! Messages will be processed now.');
+        console.log('🔄 Database reconnected! Queued messages will be processed now.');
       } else if (wasConnected && !this.isDbConnected) {
-        console.log('💔 Database disconnected! Messages will be queued.');
+        console.log('💔 Database disconnected! New messages will be queued.');
       }
+      
+      // Log trạng thái chi tiết
+      console.log(`💓 Database monitor - Connection: ${this.isDbConnected ? 'CONNECTED' : 'DISCONNECTED'}`);
     }, 5000);
   }
 
@@ -75,14 +78,23 @@ class TaskConsumer {
     await rabbitmqClient.consumeFromQueue(QUEUES.TASK_OPERATIONS, async (message) => {
       const messageId = this.getMessageId(message);
       
+      console.log('⚙️ Processing task operation:', message.operation, 'Message ID:', messageId);
+      
       // Check if already processed
       if (this.processedMessages.has(messageId)) {
         console.log('🛡️ Duplicate message detected, skipping:', messageId);
-        return { success: true };
+        return { success: true, reason: 'already_processed' };
       }
 
-      console.log('⚙️ Processing task operation:', message.operation);
+      // QUAN TRỌNG: Check database connection trước khi xử lý
+      const dbConnected = await this.isDatabaseConnected();
+      console.log('💓 Database connection status:', dbConnected ? 'CONNECTED' : 'DISCONNECTED');
       
+      if (!dbConnected) {
+        console.log('💔 Database not connected, message will be requeued');
+        return { success: false, reason: 'database_disconnected' };
+      }
+
       try {
         let result;
         switch (message.operation) {
@@ -96,32 +108,28 @@ class TaskConsumer {
             result = await this.handleTaskDeletion(message.data);
             break;
           default:
-            console.warn('Unknown operation:', message.operation);
-            return { success: false, error: 'Unknown operation' };
+            console.warn('❓ Unknown operation:', message.operation);
+            return { success: false, reason: 'unknown_operation' };
         }
         
-        // Mark as processed only after successful completion
+        // Đánh dấu đã xử lý thành công
         this.processedMessages.add(messageId);
         
+        console.log('✅ Task operation completed successfully:', message.operation);
         return { success: true, result };
-      } catch (error) {
-        console.error('❌ Task operation failed:', error);
         
-        // Check if it's a database connection error
-        if (error.name === 'SequelizeConnectionRefusedError' ||
-            error.name === 'ConnectionRefusedError' ||
-            error.code === 'ECONNREFUSED' ||
-            error.message.includes('ECONNREFUSED') ||
-            error.message.includes('Database not connected')) {
-          
-          console.log('💔 Database connection error - message will be requeued');
-          // DON'T mark as processed, throw error to let RabbitMQ requeue
-          throw error;
+      } catch (error) {
+        console.error('❌ Task operation failed:', error.message);
+        
+        // Kiểm tra loại lỗi
+        if (this.isDatabaseError(error)) {
+          console.log('💔 Database error detected - message will be requeued');
+          return { success: false, reason: 'database_error', error: error.message };
         }
         
-        // For other errors, mark as processed to avoid infinite retry
+        // Với lỗi khác, đánh dấu đã xử lý để tránh infinite retry
         this.processedMessages.add(messageId);
-        return { success: false, error: error.message };
+        return { success: false, reason: 'processing_error', error: error.message };
       }
     });
   }
@@ -131,25 +139,38 @@ class TaskConsumer {
       const messageId = this.getMessageId(message);
       console.log('📥 Processing task submission:', message.data, 'ID:', messageId);
       
+      // Check if already processed
+      if (this.processedMessages.has(messageId)) {
+        console.log('🛡️ Duplicate submission detected, skipping:', messageId);
+        return { success: true, reason: 'already_processed' };
+      }
+      
+      // Check database connection
       if (!this.isDbConnected) {
         console.log('💔 Database not available, postponing submission');
-        throw new Error('Database not available - submission will be retried');
+        return { success: false, reason: 'database_disconnected' };
       }
       
       try {
-        await this.handleTaskSubmission(message.data);
+        const result = await this.handleTaskSubmission(message.data);
+        
+        // Đánh dấu đã xử lý thành công
+        this.processedMessages.add(messageId);
+        
         console.log('✅ Successfully processed submission:', messageId);
+        return { success: true, result };
+        
       } catch (error) {
         console.error('❌ Error processing task submission:', error.message);
         
-        if (error.name === 'SequelizeConnectionRefusedError' || 
-            error.name === 'ConnectionRefusedError' ||
-            error.code === 'ECONNREFUSED') {
-          console.log('💔 Database connection error - will retry later');
-          throw error;
+        if (this.isDatabaseError(error)) {
+          console.log('💔 Database connection error - submission will be retried');
+          return { success: false, reason: 'database_error', error: error.message };
         }
         
-        throw error;
+        // Với lỗi khác, đánh dấu đã xử lý
+        this.processedMessages.add(messageId);
+        return { success: false, reason: 'processing_error', error: error.message };
       }
     });
   }
@@ -160,18 +181,33 @@ class TaskConsumer {
       
       try {
         await this.handleCacheInvalidation(message.data);
+        return { success: true };
       } catch (error) {
-        console.error('❌ Error processing cache invalidation:', error);
+        console.error('❌ Error processing cache invalidation:', error.message);
+        return { success: false, error: error.message };
       }
     });
+  }
+
+  // Helper method để kiểm tra database error
+  isDatabaseError(error) {
+    return (
+      error.name === 'SequelizeConnectionRefusedError' ||
+      error.name === 'ConnectionRefusedError' ||
+      error.code === 'ECONNREFUSED' ||
+      error.message.includes('ECONNREFUSED') ||
+      error.message.includes('Database not connected') ||
+      error.message.includes('Connection refused') ||
+      error.message.includes('ETIMEDOUT') ||
+      error.message.includes('EHOSTUNREACH')
+    );
   }
 
   async handleTaskCreation(taskData) {
     console.log('🔨 Creating task:', taskData);
     
-    // Check database connection first
+    // Double check database connection
     if (!this.isDbConnected) {
-      console.log('💔 Database not connected, cannot create task');
       throw new Error('Database not connected');
     }
     

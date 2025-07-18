@@ -1,4 +1,5 @@
 const { Server } = require('socket.io');
+const { EVENTS } = require('../config/websocket');
 
 class WebSocketHandler {
   constructor() {
@@ -75,40 +76,40 @@ class WebSocketHandler {
   emitTaskUpdated(teamId, subjectId, task) {
     if (!this.io) return;
     const roomName = `team:${teamId}:subject:${subjectId}`;
-    this.io.to(roomName).emit(EVENTS.TASK_UPDATED, {
+    this.io.to(roomName).emit('task:updated', {
       task,
       teamId,
       subjectId,
       timestamp: new Date().toISOString()
     });
-    console.log(`📢 Emitted TASK_UPDATED to room: ${roomName}`);
+    console.log(`📢 Emitted task:updated to room: ${roomName}`);
   }
 
   // Emit task deleted event
   emitTaskDeleted(teamId, subjectId, taskId) {
     if (!this.io) return;
     const roomName = `team:${teamId}:subject:${subjectId}`;
-    this.io.to(roomName).emit(EVENTS.TASK_DELETED, {
+    this.io.to(roomName).emit('task:deleted', {
       taskId,
       teamId,
       subjectId,
       timestamp: new Date().toISOString()
     });
-    console.log(`📢 Emitted TASK_DELETED to room: ${roomName}`);
+    console.log(`📢 Emitted task:deleted to room: ${roomName}`);
   }
 
   // Emit task submitted event
   emitTaskSubmitted(teamId, subjectId, taskId, userId) {
     if (!this.io) return;
     const roomName = `team:${teamId}:subject:${subjectId}`;
-    this.io.to(roomName).emit(EVENTS.TASK_SUBMITTED, {
+    this.io.to(roomName).emit('task:submitted', {
       taskId,
       userId,
       teamId,
       subjectId,
       timestamp: new Date().toISOString()
     });
-    console.log(`📢 Emitted TASK_SUBMITTED to room: ${roomName}`);
+    console.log(`📢 Emitted task:submitted to room: ${roomName}`);
   }
 }
 

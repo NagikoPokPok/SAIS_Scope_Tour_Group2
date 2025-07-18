@@ -93,13 +93,15 @@ class RabbitMQClient {
       console.log('✅ Dead letter exchange ready');
       
       for (const queue of Object.values(QUEUES)) {
-        // Setup main queue with dead letter configuration
+        // Setup main queue with proper configuration
         await this.channel.assertQueue(queue, { 
           durable: true,
           arguments: {
             'x-message-ttl': 86400000, // 24 hours TTL
             'x-dead-letter-exchange': 'dlx',
-            'x-dead-letter-routing-key': `${queue}.failed`
+            'x-dead-letter-routing-key': `${queue}.failed`,
+            // Thêm setting để message không bị mất khi consumer disconnect
+            'x-max-retries': 3
           }
         });
         console.log(`✅ Created main queue: ${queue}`);
@@ -144,56 +146,46 @@ class RabbitMQClient {
             const content = JSON.parse(message.content.toString());
             console.log(`📥 Processing message from ${queue}:`, content.operation);
             
+            // Gọi callback và chờ kết quả
             const result = await callback(content);
+            console.log(`🔍 Callback result:`, result);
             
-            // Chỉ ack message nếu thành công
-            if (result && result.success) {
+            // Kiểm tra kết quả callback
+            if (result && result.success === true) {
+              // Chỉ ack khi callback trả về success: true
               this.channel.ack(message);
-              console.log(`✅ Message processed and acknowledged from ${queue}`);
+              console.log(`✅ Message processed successfully and acknowledged from ${queue}`);
             } else {
-              console.log(`⚠️ Message processing failed, will be requeued`);
-              this.channel.nack(message, false, true); // Requeue
+              // Callback trả về success: false hoặc lỗi
+              console.log(`❌ Message processing failed:`, result);
+              
+              // Kiểm tra lý do thất bại
+              if (result && result.reason === 'database_disconnected') {
+                console.log('💔 Database disconnected - message will be requeued');
+                this.channel.nack(message, false, true); // Requeue
+              } else {
+                // Với lỗi khác, cũng requeue nhưng có thể limit retry
+                console.log('⚠️ Processing failed - message will be requeued');
+                this.channel.nack(message, false, true); // Requeue
+              }
             }
             
           } catch (error) {
             console.error(`❌ Error processing message from ${queue}:`, error.message);
             
-            // Kiểm tra nếu là lỗi database
-            if (error.name === 'SequelizeConnectionRefusedError' || 
-                error.name === 'ConnectionRefusedError' ||
-                error.code === 'ECONNREFUSED' ||
-                error.message.includes('Database not connected')) {
-              
+            // Kiểm tra loại lỗi
+            if (this.isDatabaseError(error)) {
               console.log('💔 Database connection error detected - message will be requeued');
-              // Không ack message, để RabbitMQ tự requeue
-              this.channel.nack(message, false, true);
-              return;
-              
+              this.channel.nack(message, false, true); // Requeue
             } else {
-              // Với các lỗi khác, retry với delay
-              const retryCount = message.properties.headers?.retryCount || 0;
-              if (retryCount < 3) {
-                console.log(`🔄 Retrying message (attempt ${retryCount + 1})`);
-                
-                // Thêm retry count vào headers
-                const newHeaders = { ...message.properties.headers, retryCount: retryCount + 1 };
-                
-                setTimeout(() => {
-                  try {
-                    this.channel.nack(message, false, true);
-                  } catch (nackError) {
-                    console.error('❌ Error nacking message:', nackError.message);
-                  }
-                }, 5000 * (retryCount + 1));
-              } else {
-                console.error('💀 Max retries reached, discarding message');
-                this.channel.nack(message, false, false);
-              }
+              // Lỗi khác, gửi vào dead letter queue
+              console.error('💀 Non-retryable error, sending to dead letter queue');
+              this.channel.nack(message, false, false); // Không requeue
             }
           }
         }
       }, {
-        noAck: false
+        noAck: false // Quan trọng: Manual acknowledgment
       });
 
       console.log(`🔄 Started consuming from queue: ${queue}`);
@@ -295,6 +287,29 @@ class RabbitMQClient {
     } catch (error) {
       console.error('❌ Error closing RabbitMQ connection:', error.message);
     }
+  }
+
+  // Helper methods để kiểm tra loại lỗi
+  isDatabaseError(error) {
+    return (
+      error.name === 'SequelizeConnectionRefusedError' ||
+      error.name === 'ConnectionRefusedError' ||
+      error.code === 'ECONNREFUSED' ||
+      error.message.includes('ECONNREFUSED') ||
+      error.message.includes('Database not connected') ||
+      error.message.includes('Connection refused') ||
+      error.message.includes('ETIMEDOUT') ||
+      error.message.includes('EHOSTUNREACH')
+    );
+  }
+
+  isRetryableError(error) {
+    return (
+      error.message.includes('timeout') ||
+      error.message.includes('network') ||
+      error.code === 'ENOTFOUND' ||
+      error.code === 'ECONNRESET'
+    );
   }
 }
 
