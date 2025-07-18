@@ -471,66 +471,6 @@ const startDate = task.start_date ? DateUtils.formatDate(new Date(task.start_dat
         alert("Failed to search tasks");
       }
     },
-
-    // renderTasks(tasks, taskType) {
-    //   const availableContainer = document
-    //     .getElementById("panelsStayOpen-collapseOne")
-    //     .querySelector(".accordion-body");
-    //   const submittedContainer = document
-    //     .getElementById("panelsStayOpen-collapseTwo")
-    //     .querySelector(".accordion-body");
-
-    //   // Clear containers
-    //   if (taskType === "available" || taskType === "all") {
-    //     availableContainer.innerHTML = "";
-    //   }
-    //   if (taskType === "submitted" || taskType === "all") {
-    //     submittedContainer.innerHTML = "";
-    //   }
-
-    //   if (!tasks || tasks.length === 0) {
-    //     this.renderEmptyState(availableContainer, submittedContainer, taskType);
-    //     return;
-    //   }
-
-    //   // Partition tasks by status
-    //   const availableTasks = tasks.filter((t) => t.status !== "completed");
-    //   const submittedTasks = tasks.filter((t) => t.status === "completed");
-
-    //   // Paginate available
-    //   const startA = (currentPageAvailable - 1) * tasksPerPage;
-    //   const endA = startA + tasksPerPage;
-    //   const paginatedAvailable = availableTasks.slice(startA, endA);
-
-    //   // Paginate submitted
-    //   const startS = (currentPageSubmitted - 1) * tasksPerPage;
-    //   const endS = startS + tasksPerPage;
-    //   const paginatedSubmitted = submittedTasks.slice(startS, endS);
-
-    //   // Render available tasks
-    //   if (taskType === "available" || taskType === "all") {
-    //     if (paginatedAvailable.length > 0) {
-    //       paginatedAvailable.forEach((task) => {
-    //         availableContainer.appendChild(TaskElements.createAvailableTaskElement(task));
-    //       });
-    //     } else {
-    //       availableContainer.innerHTML = "<p class='text-center'>No available tasks</p>";
-    //     }
-    //   }
-
-    //   // Render submitted tasks
-    //   if (taskType === "submitted" || taskType === "all") {
-    //     if (paginatedSubmitted.length > 0) {
-    //       paginatedSubmitted.forEach((task) => {
-    //         submittedContainer.appendChild(TaskElements.createSubmittedTaskElement(task));
-    //       });
-    //     } else {
-    //       submittedContainer.innerHTML = "<p class='text-center'>No submitted tasks</p>";
-    //     }
-    //   }
-
-      
-    // },
     renderTasks(tasks, taskType) {
   const availableContainer = document
     .getElementById("panelsStayOpen-collapseOne")
@@ -698,66 +638,7 @@ const startDate = task.start_date ? DateUtils.formatDate(new Date(task.start_dat
       };
     },
 
-    updatePageInfo(current, total) {
-      const pageInfo = document.getElementById("pageInfo");
-      if (pageInfo) {
-        pageInfo.textContent = `${current} / ${total}`;
-      }
-    },
-
-    renderPagination(totalPages) {
-      const pageContainer = document.getElementById("pageNumbers");
-      if (!pageContainer) return;
-
-      pageContainer.innerHTML = "";
-
-      for (let i = 1; i <= totalPages; i++) {
-        const btn = document.createElement("button");
-        btn.textContent = i;
-        btn.className = `btn btn-sm ${i === currentPage ? 'btn-primary' : 'btn-outline-primary'}`;
-        btn.addEventListener("click", () => {
-          this.loadTasks(i);
-        });
-        pageContainer.appendChild(btn);
-      }
-    },
-
-    attachPaginationListeners(totalPages) {
-      const firstBtn = document.getElementById("firstPageBtn");
-      const prevBtn = document.getElementById("prevPageBtn");
-      const nextBtn = document.getElementById("nextPageBtn");
-      const lastBtn = document.getElementById("lastPageBtn");
-
-      if (!firstBtn || !prevBtn || !nextBtn || !lastBtn) return;
-
-      firstBtn.onclick = () => {
-        if (currentPage > 1) this.loadTasks(1);
-      };
-
-      prevBtn.onclick = () => {
-        if (currentPage > 1) this.loadTasks(currentPage - 1);
-      };
-
-      nextBtn.onclick = () => {
-        if (currentPage < totalPages) this.loadTasks(currentPage + 1);
-      };
-
-      lastBtn.onclick = () => {
-        if (currentPage < totalPages) this.loadTasks(totalPages);
-      };
-    },
-
-
-    renderEmptyState(availableContainer, submittedContainer, taskType) {
-      if (taskType === "available" || taskType === "all") {
-        availableContainer.innerHTML = "<p class='text-center'>No available tasks</p>";
-      }
-      if (taskType === "submitted" || taskType === "all") {
-        submittedContainer.innerHTML = "<p class='text-center'>No submitted tasks</p>";
-      }
-    },
-
-  async handleTaskSubmission(taskId) {
+    async handleTaskSubmission(taskId) {
     try {
         // Show confirmation dialog
       const confirmed = confirm("Are you sure you want to submit this task?");
@@ -802,19 +683,7 @@ const startDate = task.start_date ? DateUtils.formatDate(new Date(task.start_dat
       }
     },
 
-    handleTaskEdit(taskId) {
-      // You can implement edit functionality here
-      console.log("Edit task:", taskId);
-      // For now, just show an alert
-      alert("Edit functionality to be implemented");
-    },
-
-      handleTaskEdit(taskId) {
-    // Load task data and show update modal
-    this.loadTaskForEdit(taskId);
-  },
-
-  async loadTaskForEdit(taskId) {
+    async loadTaskForEdit(taskId) {
     try {
       // Fetch task details
       const response = await fetch(`http://localhost:3000/api/task/${taskId}`);
@@ -873,37 +742,258 @@ const startDate = task.start_date ? DateUtils.formatDate(new Date(task.start_dat
     }
   },
 
+  // Thêm hàm closeCreateModal vào TaskManager
+  closeCreateModal() {
+    const modalEl = document.getElementById("reg-modal");
+    const bsModal = bootstrap.Modal.getInstance(modalEl);
+    if (bsModal) {
+      bsModal.hide();
+    }
+
+    // Clear form fields
+    const titleInput = document.getElementById("modal-task-name");
+    const descriptionInput = document.getElementById("modal-task-des");
+    const timeRangeInput = document.getElementById("modal-task-time");
+    
+    if (titleInput) titleInput.value = '';
+    if (descriptionInput) descriptionInput.value = '';
+    if (timeRangeInput) timeRangeInput.value = '';
+  },
+
     async createTask(taskData) {
       try {
-        await API.createTask(taskData);
-        console.log("Task created successfully");
-        await this.loadTasks(1, 1, true);
-        // Close modal and reset form
+        console.log('🔨 Creating task with data:', taskData);
+        
+        // Đóng modal tạo task ngay lập tức
         this.closeCreateModal();
         
-        // Reload tasks
+        // Hiển thị optimistic UI - task xuất hiện ngay lập tức
+        const optimisticTask = {
+          ...taskData,
+          task_id: Date.now(),
+          created_at: new Date().toISOString(),
+          isOptimistic: true
+        };
+        
+        // Thêm task vào UI ngay lập tức
+        this.addOptimisticTask(optimisticTask);
+        
+        // Hiển thị thông báo thành công
+        showSuccessModal('Task created successfully!');
+        
+        // Gửi request tạo task
+        const response = await API.createTask(taskData);
+        console.log('✅ Task created successfully:', response);
+        
+        // Reload tasks để cập nhật với data thực từ server
+        setTimeout(() => {
+          this.loadTasks(currentPageAvailable, currentPageSubmitted, true);
+        }, 1000);
+        
+        return response;
         
       } catch (error) {
+        console.error('❌ Error creating task:', error);
+        
+        // Nếu có lỗi, vẫn hiển thị thông báo thành công vì đã queue
+        if (error.message.includes('Failed to fetch') || error.message.includes('Network')) {
+          showSuccessModal('Task created and will be synchronized when connection is restored!');
+        } else {
+          showErrorModal('Failed to create task: ' + (error.message || error));
+        }
+        
         throw error;
       }
     },
 
-    closeCreateModal() {
-      const modalEl = document.getElementById("reg-modal");
-      const bsModal = bootstrap.Modal.getInstance(modalEl);
-      if (bsModal) {
-        bsModal.hide();
+    // Thêm task vào UI optimistic
+    addOptimisticTask(task) {
+      const availableContainer = document
+        .getElementById("panelsStayOpen-collapseOne")
+        .querySelector(".accordion-body");
+    
+      if (!availableContainer) return;
+    
+      // Tạo element cho task
+      const taskElement = TaskElements.createAvailableTaskElement(task);
+    
+      // Thêm class đặc biệt cho optimistic task
+      taskElement.classList.add('optimistic-task');
+      taskElement.style.opacity = '0.8';
+      taskElement.style.borderLeft = '4px solid #ffc107';
+    
+      // Thêm vào đầu danh sách
+      if (availableContainer.firstChild && availableContainer.firstChild.nodeName !== 'P') {
+        availableContainer.insertBefore(taskElement, availableContainer.firstChild);
+      } else {
+        // Nếu container rỗng, xóa message "No tasks" và thêm task
+        availableContainer.innerHTML = '';
+        availableContainer.appendChild(taskElement);
       }
+    },
 
-      // Clear form fields
-      const form = document.getElementById("createTaskForm");
-      if (form) {
-        form.reset();
+    // Cập nhật handleTaskSubmission để sử dụng modal
+    async handleTaskSubmission(taskId) {
+      try {
+        const confirmed = await this.showConfirmationModal(
+          'Are you sure you want to submit this task?',
+          'Submit Task'
+        );
+        
+        if (!confirmed) return;
+
+        const userId = localStorage.getItem('currentUserId') || 1;
+        
+        await API.submitTask(taskId, userId);
+
+        showSuccessModal("Task submitted successfully!");
+        await this.loadTasks();
+      } catch (error) {
+        if (error.message.includes('Failed to fetch') || error.message.includes('Network')) {
+          showSuccessModal("Task submission saved and will be processed when connection is restored!");
+        } else {
+          showErrorModal("Failed to submit task: " + error.message);
+        }
+
+        // Lưu vào localStorage nếu lỗi mạng
+        if (!navigator.onLine) {
+          let pendingSubmits = JSON.parse(localStorage.getItem("pendingTaskSubmits") || "[]");
+          pendingSubmits.push({
+            taskId,
+            userId: localStorage.getItem('currentUserId') || 1,
+            timestamp: Date.now()
+          });
+          localStorage.setItem("pendingTaskSubmits", JSON.stringify(pendingSubmits));
+        }
       }
-    }
+    },
+
+    // Cập nhật handleTaskDeletion
+    async handleTaskDeletion(taskId) {
+      try {
+        const confirmed = await this.showConfirmationModal(
+          'Are you sure you want to delete this task?',
+          'Delete Task'
+        );
+        
+        if (!confirmed) return;
+
+        await API.deleteTask(taskId);
+        showSuccessModal("Task deleted successfully!");
+        
+        await this.loadTasks(currentPageAvailable, currentPageSubmitted, true);
+      } catch (error) {
+        if (error.message.includes('Failed to fetch') || error.message.includes('Network')) {
+          showSuccessModal("Task deletion saved and will be processed when connection is restored!");
+        } else {
+          showErrorModal("Failed to delete task: " + error.message);
+        }
+      }
+    },
+
+    // Thêm hàm confirmation modal
+    showConfirmationModal(message, title = 'Confirm') {
+      return new Promise((resolve) => {
+        const modalContainer = document.getElementById('modal-status-action-container');
+        
+        modalContainer.innerHTML = `
+          <div class="modal fade" id="modal-confirmation-custom" tabindex="-1" aria-labelledby="modal-confirmation-title" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered">
+              <div class="modal-content">
+                <div class="modal-header">
+                  <h5 class="modal-title d-flex align-items-center" id="modal-confirmation-title">
+                    <i class="fa-solid fa-question-circle text-warning me-2"></i>
+                    ${title}
+                  </h5>
+                  <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body text-center py-4">
+                  <div class="mb-3">
+                    <i class="fa-solid fa-question-circle text-warning" style="font-size: 3rem;"></i>
+                  </div>
+                  <p class="fs-5 mb-0">${message}</p>
+                </div>
+                <div class="modal-footer justify-content-center">
+                  <button type="button" class="btn btn-secondary me-2" data-bs-dismiss="modal" id="cancel-btn">
+                    <i class="fa-solid fa-times me-2"></i>Cancel
+                  </button>
+                  <button type="button" class="btn btn-primary" id="confirm-btn">
+                    <i class="fa-solid fa-check me-2"></i>Confirm
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        `;
+        
+        const modal = new bootstrap.Modal(document.getElementById('modal-confirmation-custom'));
+        modal.show();
+        
+        document.getElementById('confirm-btn').addEventListener('click', () => {
+          modal.hide();
+          resolve(true);
+        });
+        
+        document.getElementById('cancel-btn').addEventListener('click', () => {
+          modal.hide();
+          resolve(false);
+        });
+        
+        document.getElementById('modal-confirmation-custom').addEventListener('hidden.bs.modal', function () {
+          modalContainer.innerHTML = '';
+          resolve(false);
+        });
+      });
+    },
+
+    // ...existing code...
   };
 
-  // ==================== SEARCH FUNCTIONALITY ====================
+// Thêm hàm error modal
+function showErrorModal(message, title = 'Error!') {
+  const modalContainer = document.getElementById('modal-status-action-container');
+  
+  if (!modalContainer) {
+    console.error('Modal container not found');
+    return;
+  }
+  
+  modalContainer.innerHTML = `
+    <div class="modal fade" id="modal-error-notification" tabindex="-1" aria-labelledby="modal-error-title" aria-hidden="true">
+      <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+          <div class="modal-header bg-danger text-white">
+            <h5 class="modal-title d-flex align-items-center" id="modal-error-title">
+              <i class="fa-solid fa-circle-exclamation me-2"></i>
+              ${title}
+            </h5>
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body text-center py-4">
+            <div class="mb-3">
+              <i class="fa-solid fa-exclamation-triangle text-danger" style="font-size: 3rem;"></i>
+            </div>
+            <p class="fs-5 mb-0">${message}</p>
+          </div>
+          <div class="modal-footer justify-content-center">
+            <button type="button" class="btn btn-danger px-4" data-bs-dismiss="modal">
+              <i class="fa-solid fa-times me-2"></i>Close
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  `;
+  
+  const modal = new bootstrap.Modal(document.getElementById('modal-error-notification'));
+  modal.show();
+  
+  document.getElementById('modal-error-notification').addEventListener('hidden.bs.modal', function () {
+    modalContainer.innerHTML = '';
+  });
+}
+
+// ==================== SEARCH FUNCTIONALITY ====================
   const SearchManager = {
   currentSearchQuery: "",
   isSearching: false,
@@ -1206,25 +1296,18 @@ async handleCreateTaskSubmission() {
     return;
   }
 
-  console.log("Raw time range input:", timeRangeStr); // Debug log
+  console.log("Raw time range input:", timeRangeStr);
 
   let startDateISO = null;
   let endDateISO = null;
 
   try {
-    // Parse the date range from the input
-    // Expected format: "10/03/2025 10:00 AM - 11/03/2025 06:00 PM"
     const dateRangeParts = timeRangeStr.split(' - ');
     
     if (dateRangeParts.length === 2) {
-      // Parse start date
       const startDateStr = dateRangeParts[0].trim();
       const endDateStr = dateRangeParts[1].trim();
       
-      console.log("Start date string:", startDateStr);
-      console.log("End date string:", endDateStr);
-      
-      // Try different moment.js parsing formats
       let startMoment = moment(startDateStr, "DD/MM/YYYY hh:mm A");
       if (!startMoment.isValid()) {
         startMoment = moment(startDateStr, "DD/MM/YYYY h:mm A");
@@ -1247,22 +1330,6 @@ async handleCreateTaskSubmission() {
       } else {
         throw new Error("Invalid date format");
       }
-    } else {
-      // Single date input - treat as end date, use current time as start
-      let endMoment = moment(timeRangeStr, "DD/MM/YYYY hh:mm A");
-      if (!endMoment.isValid()) {
-        endMoment = moment(timeRangeStr, "DD/MM/YYYY h:mm A");
-      }
-      if (!endMoment.isValid()) {
-        endMoment = moment(timeRangeStr, "MM/DD/YYYY hh:mm A");
-      }
-      
-      if (endMoment.isValid()) {
-        startDateISO = new Date().toISOString();
-        endDateISO = endMoment.toISOString();
-      } else {
-        throw new Error("Invalid date format");
-      }
     }
   } catch (error) {
     console.error("Date parsing error:", error);
@@ -1270,65 +1337,59 @@ async handleCreateTaskSubmission() {
     return;
   }
 
-  // Validate that we have valid dates
   if (!startDateISO || !endDateISO) {
     alert("Please provide valid start and end dates.");
     return;
   }
 
+    // Validate dates
     const now = new Date();
-  const startDate = new Date(startDateISO);
-  
-  // Validate that start date is not in the past
-  const currentDateOnly = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-  const startDateOnly = new Date(startDate.getFullYear(), startDate.getMonth(), startDate.getDate());
-  
-  if (startDateOnly < currentDateOnly) {
-    alert("Start date cannot be in the past. Please select a current or future date.");
-    return;
-  }
-  
-  // Validate that start time is not in the past if the date is today
-  if (startDateOnly.getTime() === currentDateOnly.getTime()) {
-    if (startDate < now) {
-      alert("Start time cannot be in the past. Please select a current or future time.");
+    const startDate = new Date(startDateISO);
+    const currentDateOnly = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const startDateOnly = new Date(startDate.getFullYear(), startDate.getMonth(), startDate.getDate());
+    
+    if (startDateOnly < currentDateOnly) {
+      alert("Start date cannot be in the past. Please select a current or future date.");
       return;
     }
-  }
+    
+    if (startDateOnly.getTime() === currentDateOnly.getTime()) {
+      if (startDate < now) {
+        alert("Start time cannot be in the past. Please select a current or future time.");
+        return;
+      }
+    }
 
-  // Validate that end date is after start date
-  if (new Date(endDateISO) <= new Date(startDateISO)) {
-    alert("End date must be after start date.");
-    return;
-  }
+    if (new Date(endDateISO) <= new Date(startDateISO)) {
+      alert("End date must be after start date.");
+      return;
+    }
 
-  // Build payload to match your controller and model exactly
-  const payload = {
-    subject_id: parseInt(subjectId, 10),
-    team_id: parseInt(teamId, 10),
-    title: title,
-    description: description,
-    start_date: startDateISO,
-    end_date: endDateISO,
-    status: 'pending'
-  };
+    const payload = {
+      subject_id: parseInt(subjectId, 10),
+      team_id: parseInt(teamId, 10),
+      title: title,
+      description: description,
+      start_date: startDateISO,
+      end_date: endDateISO,
+      status: 'pending'
+    };
 
-  // Validate required fields
-  if (!payload.subject_id || !payload.team_id) {
-    alert("Missing subject or team information.");
-    return;
-  }
+    if (!payload.subject_id || !payload.team_id) {
+      alert("Missing subject or team information.");
+      return;
+    }
 
-  console.log("Final payload being sent:", payload); // Debug log
+    console.log("Final payload being sent:", payload);
 
-  try {
-    await TaskManager.createTask(payload);
-    alert("Task created successfully!");
-  } catch (error) {
-    console.error("Task creation error:", error);
-    alert("Failed to create task: " + (error.message || error));
-  }
-},
+    try {
+      await TaskManager.createTask(payload);
+    } catch (error) {
+      console.error("Task creation error:", error);
+      alert("Failed to create task: " + (error.message || error));
+    }
+  },
+
   async handleUpdateTaskSubmission() {
     const taskIdInput = document.getElementById("update-task-id");
     const titleInput = document.getElementById("update-task-name");
@@ -1467,3 +1528,51 @@ retryPendingTaskSubmits();
   // Start the application
   init();
 });
+
+// Thêm hàm hiển thị modal success có sẵn
+function showSuccessModal(message, title = 'Success!') {
+  const modalContainer = document.getElementById('modal-status-action-container');
+  
+  if (!modalContainer) {
+    console.error('Modal container not found');
+    return;
+  }
+  
+  modalContainer.innerHTML = `
+    <div class="modal fade" id="modal-success-notification" tabindex="-1" aria-labelledby="modal-success-title" aria-hidden="true">
+      <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+          <div class="modal-header bg-success text-white">
+            <h5 class="modal-title d-flex align-items-center" id="modal-success-title">
+              <i class="fa-solid fa-circle-check me-2"></i>
+              ${title}
+            </h5>
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+          </div>
+          <div class="modal-body text-center py-4">
+            <div class="mb-3">
+              <i class="fa-solid fa-check-circle text-success" style="font-size: 3rem;"></i>
+            </div>
+            <p class="fs-5 mb-0">${message}</p>
+          </div>
+          <div class="modal-footer justify-content-center">
+            <button type="button" class="btn btn-success px-4" data-bs-dismiss="modal">
+              <i class="fa-solid fa-thumbs-up me-2"></i>OK
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  `;
+  
+  const modal = new bootstrap.Modal(document.getElementById('modal-success-notification'));
+  modal.show();
+  
+  setTimeout(() => {
+    modal.hide();
+  }, 3000);
+  
+  document.getElementById('modal-success-notification').addEventListener('hidden.bs.modal', function () {
+    modalContainer.innerHTML = '';
+  });
+}

@@ -1,7 +1,6 @@
 const { Sequelize } = require('sequelize');
 const path = require('path');
 
-// Load .env từ thư mục LAB_2 (thư mục cha của src)
 require('dotenv').config({ 
   // path: path.join(__dirname, '../../.env') 
   path: path.resolve(process.cwd(), '.env')

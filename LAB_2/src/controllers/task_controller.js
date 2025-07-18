@@ -21,20 +21,113 @@ exports.createTask = async (req, res) => {
   try {
     console.log('🔨 Controller: Creating task with data:', req.body);
     
-    // CHỈ queue task, KHÔNG tạo trực tiếp
-    await taskQueueService.queueTaskCreation(req.body);
+    // Tạo task ID tạm thời cho optimistic UI
+    const tempTaskId = Date.now();
+    const taskDataWithTempId = {
+      ...req.body,
+      task_id: tempTaskId,
+      status: 'pending',
+      created_at: new Date().toISOString(),
+      isOptimistic: true
+    };
     
-    console.log('✅ Task queued for creation');
-    res.status(202).json({ 
-      message: 'Task creation queued successfully',
-      status: 'pending'
-    });
+    // Queue task creation
+    const queued = await taskQueueService.queueTaskCreation(req.body);
+    
+    if (queued) {
+      console.log('✅ Task queued for creation');
+      
+      // Cập nhật cache với task tạm thời
+      await updateOptimisticCache(req.body, taskDataWithTempId);
+      
+      res.status(201).json({ 
+        message: 'Task created successfully',
+        status: 'success',
+        data: taskDataWithTempId
+      });
+    } else {
+      // Fallback to immediate creation
+      console.log('⚠️ Queue not available, creating task directly');
+      
+      try {
+        const task = await Task.create(req.body);
+        
+        res.status(201).json({
+          message: 'Task created successfully',
+          status: 'success',
+          data: task
+        });
+      } catch (dbError) {
+        console.log('💔 Database error, providing optimistic response');
+        
+        // Cập nhật cache với task tạm thời
+        await updateOptimisticCache(req.body, taskDataWithTempId);
+        
+        res.status(201).json({
+          message: 'Task created successfully',
+          status: 'success',
+          data: taskDataWithTempId,
+          notice: 'Task will be synchronized when database is available'
+        });
+      }
+    }
     
   } catch (error) {
-    console.error('❌ Error queueing task creation:', error);
-    res.status(500).json({ error: 'Failed to queue task creation' });
+    console.error('❌ Error creating task:', error);
+    res.status(500).json({ 
+      error: 'Failed to create task',
+      message: error.message 
+    });
   }
 };
+
+// Helper function để cập nhật cache optimistic
+async function updateOptimisticCache(originalData, taskData) {
+  if (!redisClient.isReady) return;
+  
+  try {
+    const { subject_id, team_id } = originalData;
+    
+    // Lấy cache hiện tại cho available tasks
+    const cacheKey = CACHE_KEYS.TASK_LIST(subject_id, team_id, "not_completed", 1, 5);
+    const countCacheKey = CACHE_KEYS.TASK_COUNT(subject_id, team_id, "not_completed");
+    
+    let cachedTasks = [];
+    let currentCount = 0;
+    
+    try {
+      const cachedData = await redisClient.get(cacheKey);
+      const cachedCountData = await redisClient.get(countCacheKey);
+      
+      if (cachedData) {
+        cachedTasks = JSON.parse(cachedData);
+      }
+      
+      if (cachedCountData) {
+        currentCount = parseInt(cachedCountData);
+      }
+    } catch (parseError) {
+      console.log('⚠️ Error parsing cached data, starting fresh');
+    }
+    
+    // Thêm task mới vào đầu danh sách
+    cachedTasks.unshift(taskData);
+    
+    // Giữ tối đa 5 tasks
+    if (cachedTasks.length > 5) {
+      cachedTasks = cachedTasks.slice(0, 5);
+    }
+    
+    // Cập nhật cache
+    await redisClient.setEx(cacheKey, CACHE_TTL, JSON.stringify(cachedTasks));
+    await redisClient.setEx(countCacheKey, CACHE_TTL, (currentCount + 1).toString());
+    
+    console.log('✅ Updated optimistic cache');
+    
+  } catch (error) {
+    console.error('❌ Error updating optimistic cache:', error);
+  }
+}
 
 // Submit task
 exports.submitTask = async (req, res) => {

@@ -9,8 +9,35 @@ const websocketHandler = require('../utils/websocket_handler');
 class TaskConsumer {
   constructor() {
     this.isProcessing = false;
-    this.retryQueue = new Map();
-    this.processedMessages = new Set(); // Track processed messages
+    this.processedMessages = new Set();
+    this.dbCheckInterval = null;
+    this.isDbConnected = false;
+    this.retryCleanupInterval = null;
+    this.startDatabaseMonitoring();
+  }
+
+  // Database monitoring
+  startDatabaseMonitoring() {
+    this.dbCheckInterval = setInterval(async () => {
+      const wasConnected = this.isDbConnected;
+      this.isDbConnected = await this.isDatabaseConnected();
+      
+      if (!wasConnected && this.isDbConnected) {
+        console.log('🔄 Database reconnected! Messages will be processed now.');
+      } else if (wasConnected && !this.isDbConnected) {
+        console.log('💔 Database disconnected! Messages will be queued.');
+      }
+    }, 5000);
+  }
+
+  // Check database connectivity
+  async isDatabaseConnected() {
+    try {
+      await sequelize.authenticate();
+      return true;
+    } catch (error) {
+      return false;
+    }
   }
 
   async startConsuming() {
@@ -36,17 +63,6 @@ class TaskConsumer {
     } catch (error) {
       console.error('❌ Error starting consumers:', error);
       this.isProcessing = false;
-    }
-  }
-
-  // Check database connectivity
-  async isDatabaseConnected() {
-    try {
-      await sequelize.authenticate();
-      return true;
-    } catch (error) {
-      console.log('💔 Database not connected:', error.message);
-      return false;
     }
   }
 
@@ -84,19 +100,27 @@ class TaskConsumer {
             return { success: false, error: 'Unknown operation' };
         }
         
-        // Mark as processed
+        // Mark as processed only after successful completion
         this.processedMessages.add(messageId);
-        
-        // Clean up old processed messages (keep only last 1000)
-        if (this.processedMessages.size > 1000) {
-          const entries = Array.from(this.processedMessages);
-          this.processedMessages.clear();
-          entries.slice(-500).forEach(id => this.processedMessages.add(id));
-        }
         
         return { success: true, result };
       } catch (error) {
         console.error('❌ Task operation failed:', error);
+        
+        // Check if it's a database connection error
+        if (error.name === 'SequelizeConnectionRefusedError' ||
+            error.name === 'ConnectionRefusedError' ||
+            error.code === 'ECONNREFUSED' ||
+            error.message.includes('ECONNREFUSED') ||
+            error.message.includes('Database not connected')) {
+          
+          console.log('💔 Database connection error - message will be requeued');
+          // DON'T mark as processed, throw error to let RabbitMQ requeue
+          throw error;
+        }
+        
+        // For other errors, mark as processed to avoid infinite retry
+        this.processedMessages.add(messageId);
         return { success: false, error: error.message };
       }
     });
@@ -107,9 +131,7 @@ class TaskConsumer {
       const messageId = this.getMessageId(message);
       console.log('📥 Processing task submission:', message.data, 'ID:', messageId);
       
-      // Check database connectivity first
-      const dbConnected = await this.isDatabaseConnected();
-      if (!dbConnected) {
+      if (!this.isDbConnected) {
         console.log('💔 Database not available, postponing submission');
         throw new Error('Database not available - submission will be retried');
       }
@@ -127,16 +149,6 @@ class TaskConsumer {
           throw error;
         }
         
-        // For other errors, use retry logic
-        if (message.retryCount < 3) {
-          message.retryCount++;
-          setTimeout(() => {
-            rabbitmqClient.sendToQueue(QUEUES.TASK_SUBMISSIONS, message);
-          }, 5000 * message.retryCount);
-        } else {
-          console.error('💀 Max retries reached for submission:', messageId);
-        }
-        
         throw error;
       }
     });
@@ -150,7 +162,6 @@ class TaskConsumer {
         await this.handleCacheInvalidation(message.data);
       } catch (error) {
         console.error('❌ Error processing cache invalidation:', error);
-        // Cache invalidation failures are not critical, so we won't retry
       }
     });
   }
@@ -158,37 +169,43 @@ class TaskConsumer {
   async handleTaskCreation(taskData) {
     console.log('🔨 Creating task:', taskData);
     
-    const task = await taskService.createTask(taskData);
+    // Check database connection first
+    if (!this.isDbConnected) {
+      console.log('💔 Database not connected, cannot create task');
+      throw new Error('Database not connected');
+    }
     
-    // Invalidate cache
-    await this.invalidateTaskCache(task.team_id, task.subject_id);
-    
-    // Emit WebSocket event với debug
-    console.log('📡 Emitting task:created event for:', {
-      teamId: task.team_id,
-      subjectId: task.subject_id,
-      taskId: task.task_id
-    });
-    
-    websocketHandler.emitTaskCreated(task.team_id, task.subject_id, task);
-    
-    console.log('✅ Task created and event emitted');
-    return task;
+    try {
+      const task = await taskService.createTask(taskData);
+      
+      // Invalidate cache after successful creation
+      await this.invalidateTaskCache(task.team_id, task.subject_id);
+      
+      // Emit WebSocket event
+      console.log('📡 Emitting task:created event for:', {
+        teamId: task.team_id,
+        subjectId: task.subject_id,
+        taskId: task.task_id
+      });
+      
+      websocketHandler.emitTaskCreated(task.team_id, task.subject_id, task);
+      
+      console.log('✅ Task created and event emitted');
+      return task;
+      
+    } catch (error) {
+      console.error('❌ Error in handleTaskCreation:', error);
+      throw error;
+    }
   }
 
   async handleTaskUpdate(data) {
     console.log('📝 Updating task:', data.taskId);
     
-    const dbConnected = await this.isDatabaseConnected();
-    if (!dbConnected) {
-      throw new Error('Database not connected');
-    }
-    
     const task = await taskService.updateTask(data.taskId, data.updateData);
     
     if (task) {
       await this.invalidateTaskCache(task.team_id, task.subject_id);
-      // Emit WebSocket event
       websocketHandler.emitTaskUpdated(task.team_id, task.subject_id, task);
     }
     
@@ -198,16 +215,10 @@ class TaskConsumer {
   async handleTaskDeletion(data) {
     console.log('🗑️ Deleting task:', data.taskId);
     
-    const dbConnected = await this.isDatabaseConnected();
-    if (!dbConnected) {
-      throw new Error('Database not connected');
-    }
-    
     const result = await taskService.deleteTask(data.taskId);
     
     if (result) {
       await this.invalidateTaskCache(result.team_id, result.subject_id);
-      // Emit WebSocket event
       websocketHandler.emitTaskDeleted(result.team_id, result.subject_id, data.taskId);
     }
     
@@ -217,12 +228,6 @@ class TaskConsumer {
   async handleTaskSubmission(data) {
     console.log('📤 Submitting task:', data.taskId, 'by user:', data.userId);
     
-    const dbConnected = await this.isDatabaseConnected();
-    if (!dbConnected) {
-      throw new Error('Database not connected');
-    }
-    
-    // Check if already submitted
     const existingSubmission = await TaskCompleted.findOne({
       where: { task_id: data.taskId, user_id: data.userId }
     });
@@ -232,23 +237,18 @@ class TaskConsumer {
       return { alreadySubmitted: true };
     }
 
-    // Get task details first
     const task = await taskService.getTaskById(data.taskId);
     if (!task) {
       throw new Error('Task not found');
     }
 
-    // Create submission
     const submission = await TaskCompleted.create({
       task_id: data.taskId,
       user_id: data.userId,
-      submitted_at: new Date()
+      completed_date: new Date()
     });
 
-    // Invalidate cache
     await this.invalidateTaskCache(task.team_id, task.subject_id);
-    
-    // Emit WebSocket event
     websocketHandler.emitTaskSubmitted(task.team_id, task.subject_id, data.taskId, data.userId);
 
     console.log('✅ Task submitted successfully');
@@ -283,26 +283,37 @@ class TaskConsumer {
     }
   }
 
-  // Cleanup retry tracking periodically
+  // Thêm phương thức startRetryCleanup
   startRetryCleanup() {
-    setInterval(() => {
-      const now = Date.now();
-      const expiredMessages = [];
+    console.log('🧹 Starting retry cleanup service...');
+    
+    // Cleanup old processed messages every 10 minutes
+    this.retryCleanupInterval = setInterval(() => {
+      const oldSize = this.processedMessages.size;
       
-      for (const [messageId, retryInfo] of this.retryQueue.entries()) {
-        if (now - retryInfo.lastAttempt > 60000) { // 1 minute
-          expiredMessages.push(messageId);
-        }
+      if (oldSize > 1000) {
+        // Keep only the last 500 messages
+        const entries = Array.from(this.processedMessages);
+        this.processedMessages.clear();
+        entries.slice(-500).forEach(id => this.processedMessages.add(id));
+        
+        console.log(`🧹 Cleaned up processed messages: ${oldSize} -> ${this.processedMessages.size}`);
       }
       
-      expiredMessages.forEach(messageId => {
-        this.retryQueue.delete(messageId);
-      });
-      
-      if (expiredMessages.length > 0) {
-        console.log('🧹 Cleaned up', expiredMessages.length, 'expired retry entries');
-      }
-    }, 30000); // Every 30 seconds
+      console.log(`📊 Current processed messages count: ${this.processedMessages.size}`);
+    }, 10 * 60 * 1000); // 10 minutes
+    
+    console.log('✅ Retry cleanup service started');
+  }
+
+  cleanup() {
+    if (this.dbCheckInterval) {
+      clearInterval(this.dbCheckInterval);
+    }
+    
+    if (this.retryCleanupInterval) {
+      clearInterval(this.retryCleanupInterval);
+    }
   }
 }
 

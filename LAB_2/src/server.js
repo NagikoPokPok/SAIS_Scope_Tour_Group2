@@ -22,6 +22,7 @@ const redisClient = require('./utils/redis_client');
 const rabbitmqClient = require('./utils/rabbitmq_client');
 const websocketHandler = require('./utils/websocket_handler');
 const taskConsumer = require('./consumers/task_consumer');
+const databaseMonitor = require('./utils/database_monitor');
 
 const app = express();
 const server = http.createServer(app);
@@ -138,5 +139,17 @@ const startServer = async () => {
     process.exit(1);
   }
 };
+
+// Add after other initializations
+databaseMonitor.startMonitoring();
+
+databaseMonitor.on('connected', () => {
+  console.log('🔄 Database reconnected - processing queued operations');
+  // Optionally trigger queue processing
+});
+
+databaseMonitor.on('disconnected', () => {
+  console.log('⚠️ Database disconnected - operations will queue');
+});
 
 startServer();

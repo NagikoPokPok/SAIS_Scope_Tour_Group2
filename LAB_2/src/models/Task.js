@@ -34,7 +34,6 @@ const Task = sequelize.define('Task', {
   },
   status: {
     type: DataTypes.STRING(50),
-    defaultValue: 'pending'
   },
   created_at: {
     type: DataTypes.DATE,
