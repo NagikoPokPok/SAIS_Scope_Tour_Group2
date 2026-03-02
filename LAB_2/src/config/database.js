@@ -21,6 +21,9 @@ const sequelize = new Sequelize(
     dialect: 'mysql',
     dialectOptions: {
       connectTimeout: 10000,
+      ssl: process.env.NODE_ENV === 'production' ? {
+        rejectUnauthorized: false
+      } : false
     },
     logging: false,
   }
