@@ -1,4 +1,4 @@
 .env
-
+node_modules
 LAB_2/src/config/config.json
 LAB_2/src/config/database.js
