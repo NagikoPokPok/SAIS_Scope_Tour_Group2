@@ -1,47 +1,51 @@
 // Fix for redisClient.js to ensure proper cache handling
 
-const redis = require('redis');
+const redis = require("redis");
 
 // Configure Redis with retry strategy
 const redisClient = redis.createClient({
-  url: 'redis://localhost:6379',
+  url: process.env.REDIS_URL,
   socket: {
+    tls:
+      process.env.REDIS_URL?.startsWith("rediss://") ||
+      process.env.REDIS_URL?.includes("upstash.io"),
+    rejectUnauthorized: false,
     reconnectStrategy: (retries) => {
-      // Maximum retry delay is 30 seconds
       const delay = Math.min(retries * 1000, 30000);
-      console.log(`Retrying Redis connection in ${delay}ms...`);
       return delay;
-    }
-  }
+    },
+  },
 });
 
 // Connect and handle connection events
-redisClient.connect().catch(err => {
-  console.error('❌ Redis initial connection failed:', err);
-  console.log('Application will continue and retry Redis connection automatically');
+redisClient.connect().catch((err) => {
+  console.error("Redis initial connection failed:", err);
+  console.log(
+    "Application will continue and retry Redis connection automatically",
+  );
 });
 
 // Handle connected event
-redisClient.on('connect', () => {
-  console.log('✅ Redis client connected');
+redisClient.on("connect", () => {
+  console.log("Redis client connected");
   enhancedRedisClient.isReady = true;
 });
 
 // Handle connection error
-redisClient.on('error', (err) => {
-  console.error('❌ Redis Client Error:', err);
+redisClient.on("error", (err) => {
+  console.error("Redis Client Error:", err);
   enhancedRedisClient.isReady = false;
 });
 
 // Handle reconnected event
-redisClient.on('reconnecting', () => {
-  console.log('🔄 Redis client reconnecting...');
+redisClient.on("reconnecting", () => {
+  console.log("Redis client reconnecting...");
   enhancedRedisClient.isReady = false;
 });
 
 // Handle end event
-redisClient.on('end', () => {
-  console.log('⚠️ Redis client connection closed');
+redisClient.on("end", () => {
+  console.log("Redis client connection closed");
   enhancedRedisClient.isReady = false;
 });
 
@@ -62,7 +66,7 @@ const enhancedRedisClient = {
   async get(key) {
     try {
       if (!redisClient.isReady) {
-        console.log('⚠️ Redis not ready when attempting to get', key);
+        console.log("Redis not ready when attempting to get", key);
         return null;
       }
 
@@ -71,7 +75,7 @@ const enhancedRedisClient = {
 
       return result;
     } catch (err) {
-      console.error(`❌ Redis get error for key ${key}:`, err);
+      console.error(`Redis get error for key ${key}:`, err);
       this.isReady = false;
       return null;
     }
@@ -81,14 +85,14 @@ const enhancedRedisClient = {
   scanIterator(pattern) {
     return redisClient.scanIterator(pattern);
   },
-  // Delete value 
+  // Delete value
   async del(key) {
     try {
       if (!redisClient.isReady) {
-        console.log('⚠️ Redis not ready when attempting to delete', key);
+        console.log("Redis not ready when attempting to delete", key);
         return false;
       }
-      if (!key || typeof key !== 'string' || key.trim() === '') {
+      if (!key || typeof key !== "string" || key.trim() === "") {
         console.error(`⚠️ Attempted to delete with invalid key: "${key}"`);
         return false;
       }
@@ -106,29 +110,36 @@ const enhancedRedisClient = {
   async setEx(key, ttl, value) {
     try {
       if (!redisClient.isReady) {
-        console.log('⚠️ Redis not ready when attempting to set', key);
+        console.log("⚠️ Redis not ready when attempting to set", key);
         return false;
       }
 
       this.isReady = redisClient.isReady;
 
       // Validate the value to ensure it's properly formatted
-      if (typeof value === 'string') {
+      if (typeof value === "string") {
         try {
           // Check if it's a valid JSON string with data
           if (value.includes('"data"')) {
             const parsed = JSON.parse(value);
-            if (!parsed.data || !Array.isArray(parsed.data) || parsed.data.length === 0) {
-              console.error('⚠️ Attempting to cache invalid data structure:', parsed);
+            if (
+              !parsed.data ||
+              !Array.isArray(parsed.data) ||
+              parsed.data.length === 0
+            ) {
+              console.error(
+                "⚠️ Attempting to cache invalid data structure:",
+                parsed,
+              );
               return false;
             }
           }
         } catch (parseErr) {
-          console.error('⚠️ Invalid JSON being cached:', parseErr);
+          console.error("⚠️ Invalid JSON being cached:", parseErr);
           return false;
         }
       } else {
-        console.error('⚠️ Non-string value being cached');
+        console.error("⚠️ Non-string value being cached");
         return false;
       }
 
@@ -149,9 +160,9 @@ const enhancedRedisClient = {
         await redisClient.quit();
       }
     } catch (err) {
-      console.error('Error while closing Redis connection:', err);
+      console.error("Error while closing Redis connection:", err);
     }
-  }
+  },
 };
 
 // Use a shorter interval for more responsive status updates
