@@ -2,8 +2,7 @@ const { Sequelize } = require('sequelize');
 const path = require('path');
 
 require('dotenv').config({ 
-  // path: path.join(__dirname, '../../.env') 
-  path: path.resolve(process.cwd(), '.env')
+  path: path.join(__dirname, '../.env')
 });
 
 console.log('Environment variables loaded:');
